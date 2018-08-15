@@ -1,7 +1,5 @@
 const MockContract = artifacts.require("./MockContract.sol");
 const ComplexInterface = artifacts.require("./ComplexInterface.sol");;
-const ComplexInterfaceAbi = require("./../build/contracts/ComplexInterface.json")["abi"];
-
 const abi = require('ethereumjs-abi')
 
 contract('MockContract', function(accounts) {
