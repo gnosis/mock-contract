@@ -1,0 +1,26 @@
+{
+  "name": "mock-contract",
+  "version": "1.0.0",
+  "description": "Simple Solidity contract to mock dependent contracts in truffle tests.",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "truffle test"
+  },
+  "keywords": [
+    "solidity",
+    "mock",
+    "unit-testing",
+    "ethereum",
+    "truffle",
+    "stub",
+    "contract"
+  ],
+  "author": "Felix Leupold",
+  "license": "ISC",
+  "dependencies": {
+    "ethereumjs-abi": "^0.6.5"
+  }
+}
