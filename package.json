@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "description": "Simple Solidity contract to mock dependent contracts in truffle tests.",
   "main": "truffle-config.js",
-  "directories": {
-    "test": "test"
-  },
+  "files": [
+    "contracts",
+    "test"
+  ],
   "scripts": {
-    "test": "truffle test"
+    "test-norpc": "truffle test",
+    "test": "run-with-testrpc -l 20000000 --noVMErrorsOnRPCResponse true 'truffle test'"
   },
   "keywords": [
     "solidity",
@@ -20,6 +22,9 @@
   ],
   "author": "Felix Leupold",
   "license": "ISC",
+  "devDependencies": {
+    "run-with-testrpc": "^0.3.0"
+  },
   "dependencies": {
     "ethereumjs-abi": "^0.6.5"
   }
