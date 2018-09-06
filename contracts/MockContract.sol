@@ -55,11 +55,13 @@ contract MockContract {
 	function reset(bytes call) public {
 		mockTypes[call] = MockType.Return;
 		expectations[call] = hex"";
+		revertMessage[call] = "";
 	}
 
 	function resetAny(bytes4 method) public {
 		mockTypesAny[method] = MockType.Return;
 		expectationsAny[method] = hex"";
+		revertMessageAny[method] = "";
 	}
 
 	event Debug(bytes4 value);
