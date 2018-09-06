@@ -30,7 +30,7 @@ contract('MockContract', function(accounts) {
       assert.equal(result, false)
 
       // Check that we can reset return
-      await mock.reset(encoded)
+      await mock.reset()
       result = await complex.acceptAdressUintReturnBool.call("0x0", 10)
       assert.equal(result, false)
     });
@@ -45,7 +45,7 @@ contract('MockContract', function(accounts) {
       await mock.givenRevert(encoded);
 
       // On error it should return the error message for a call
-      error = await utils.getErrorMessage(complex.addtess, 0, encoded)
+      error = await utils.getErrorMessage(complex.address, 0, encoded)
       assert.equal(error, "")
       // Check that other calls return default
       result = await complex.acceptAdressUintReturnBool.call("0x1", 10);
@@ -54,7 +54,7 @@ contract('MockContract', function(accounts) {
       await utils.assertRevert(complex.acceptAdressUintReturnBool("0x0", 10))
 
       // Check that we can reset revert
-      await mock.reset(encoded)
+      await mock.reset()
       // Transaction should be successful
       await complex.acceptAdressUintReturnBool("0x0", 10)
     });
@@ -79,7 +79,7 @@ contract('MockContract', function(accounts) {
         assert.equal(result, false)
   
         // Check that we can reset revert
-        await mock.reset(encoded)
+        await mock.reset()
         // Transactions should be successful
         await complex.acceptAdressUintReturnBool("0x0", 10)
       });
@@ -94,7 +94,7 @@ contract('MockContract', function(accounts) {
       await mock.givenOutOfGas(encoded);
 
       // On error it should return the error message for a call
-      error = await utils.getErrorMessage(complex.addtess, 0, encoded)
+      error = await utils.getErrorMessage(complex.address, 0, encoded)
       assert.equal(error, "")
 
       await utils.assertOutOfGas(complex.acceptAdressUintReturnBool("0x0", 10))
@@ -104,7 +104,7 @@ contract('MockContract', function(accounts) {
       assert.equal(result, false)
 
       // Check that we can reset revert
-      await mock.reset(encoded)
+      await mock.reset()
       // Transaction should be successful
       await complex.acceptAdressUintReturnBool("0x0", 10)
     });
@@ -131,7 +131,7 @@ contract('MockContract', function(accounts) {
       assert.equal(result, true)
 
       // Check that we can reset revert
-      await mock.resetAny(methodId)
+      await mock.reset()
       result = await complex.acceptAdressUintReturnBool.call("0x0", 10)
       assert.equal(result, false)
       result = await complex.acceptAdressUintReturnBool.call("0x1", 12)
@@ -149,17 +149,17 @@ contract('MockContract', function(accounts) {
 
       // On error it should return the error message for a call
       var encoded = await complex.contract.acceptAdressUintReturnBool.getData("0x0", 10);
-      error = await utils.getErrorMessage(complex.addtess, 0, encoded)
+      error = await utils.getErrorMessage(complex.address, 0, encoded)
       assert.equal(error, "")
       encoded = await complex.contract.acceptAdressUintReturnBool.getData("0x1", 12);
-      error = await utils.getErrorMessage(complex.addtess, 0, encoded)
+      error = await utils.getErrorMessage(complex.address, 0, encoded)
       assert.equal(error, "")
 
       await utils.assertRevert(complex.acceptAdressUintReturnBool("0x0", 10))
       await utils.assertRevert(complex.acceptAdressUintReturnBool("0x1", 12))
 
       // Check that we can reset revert
-      await mock.resetAny(methodId)
+      await mock.reset()
       // Transactions should be successful
       await complex.acceptAdressUintReturnBool("0x0", 10)
       await complex.acceptAdressUintReturnBool("0x1", 12)
@@ -186,7 +186,7 @@ contract('MockContract', function(accounts) {
       await utils.assertRevert(complex.acceptAdressUintReturnBool("0x1", 12))
 
       // Check that we can reset revert
-      await mock.resetAny(methodId)
+      await mock.reset()
       // Transactions should be successful
       await complex.acceptAdressUintReturnBool("0x0", 10)
       await complex.acceptAdressUintReturnBool("0x1", 12)
@@ -203,20 +203,94 @@ contract('MockContract', function(accounts) {
 
       // On error it should return the error message for a call
       var encoded = await complex.contract.acceptAdressUintReturnBool.getData("0x0", 10);
-      error = await utils.getErrorMessage(complex.addtess, 0, encoded)
+      error = await utils.getErrorMessage(complex.address, 0, encoded)
       assert.equal(error, "")
       encoded = await complex.contract.acceptAdressUintReturnBool.getData("0x1", 12);
-      error = await utils.getErrorMessage(complex.addtess, 0, encoded)
+      error = await utils.getErrorMessage(complex.address, 0, encoded)
       assert.equal(error, "")
 
       await utils.assertOutOfGas(complex.acceptAdressUintReturnBool("0x0", 10))
       await utils.assertOutOfGas(complex.acceptAdressUintReturnBool("0x1", 12))
 
       // Check that we can reset revert
-      await mock.resetAny(methodId)
+      await mock.reset()
       // Transactions should be successful
       await complex.acceptAdressUintReturnBool("0x0", 10)
       await complex.acceptAdressUintReturnBool("0x1", 12)
+    });
+  });
+
+  describe("test mock priority", function() {
+
+    const methodId = "0x" + abi.methodID("acceptUintReturnString", ["uint"]).toString("hex")
+    const testSpecificMocks = async function (mock, complex) {
+      const encoded = await complex.contract.acceptUintReturnString.getData(42)
+      await mock.givenReturn(encoded, abi.rawEncode(['string'], ["return specific"]).toString());
+      result = await complex.acceptUintReturnString.call(42);
+      // Specific mock should be prioritized over any mock
+      assert.equal(result, "return specific")
+
+      await mock.givenRevert(encoded);
+      await utils.assertRevert(complex.acceptUintReturnString(42))
+
+      await mock.givenRevertWithMessage(encoded, "revert specific");
+      error = await utils.getErrorMessage(complex.address, 0, encoded)
+      assert.equal(error, "revert specific")
+
+      await mock.givenOutOfGas(encoded);
+      await utils.assertOutOfGas(complex.acceptUintReturnString(42))
+
+      // Check that we can reset revert
+      await mock.reset()
+      // Transactions should be successful
+      result = await complex.acceptUintReturnString.call(42);
+      assert.equal(result, "")
+    }
+
+    it("all specific mocks should be prioritized over return any mock", async function() {
+      const mock = await MockContract.new();
+      const complex = ComplexInterface.at(mock.address)
+
+      // No mock set
+      result = await complex.acceptUintReturnString.call(42);
+      assert.equal(result, "")
+
+      await mock.givenReturnAny(methodId, abi.rawEncode(['string'], ["return any"]).toString());
+      result = await complex.acceptUintReturnString.call(42);
+      assert.equal(result, "return any")
+
+      await testSpecificMocks(mock, complex)
+    });
+
+    it("all specific mocks should be prioritized over revert any mock", async function() {
+      const mock = await MockContract.new();
+      const complex = ComplexInterface.at(mock.address)
+
+      // No mock set
+      result = await complex.acceptUintReturnString.call(42);
+      assert.equal(result, "")
+
+      await mock.givenRevertAnyWithMessage(methodId, "revert any");
+      await utils.assertRevert(complex.acceptUintReturnString(42))
+      const encoded = await complex.contract.acceptUintReturnString.getData(42)
+      error = await utils.getErrorMessage(complex.address, 0, encoded)
+      assert.equal(error, "revert any")
+
+      await testSpecificMocks(mock, complex)
+    });
+
+    it("all specific mocks should be prioritized over out of gas any mock", async function() {
+      const mock = await MockContract.new();
+      const complex = ComplexInterface.at(mock.address)
+
+      // No mock set
+      result = await complex.acceptUintReturnString.call(42);
+      assert.equal(result, "")
+
+      await mock.givenOutOfGasAny(methodId);
+      await utils.assertOutOfGas(complex.acceptUintReturnString(42))
+
+      await testSpecificMocks(mock, complex)
     });
   });
 });
