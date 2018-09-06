@@ -23,7 +23,8 @@
   "author": "Felix Leupold",
   "license": "ISC",
   "devDependencies": {
-    "run-with-testrpc": "^0.3.0"
+    "run-with-testrpc": "^0.3.0",
+    "truffle": "4.1.14"
   },
   "dependencies": {
     "ethereumjs-abi": "^0.6.5"
