@@ -2,11 +2,11 @@ pragma solidity ^0.4.23;
 
 contract MockContract {
 	enum MockType { Return, Revert, OutOfGas }
-
-    bytes32 public constant MOCKS_LIST_START = 0x1;
-    bytes public constant MOCKS_LIST_END = "0xff";
-    bytes32 public constant MOCKS_LIST_END_HASH = keccak256(MOCKS_LIST_END);
-    bytes4 public constant SENTINEL_ANY_MOCKS = 0x1;
+	
+	bytes32 public constant MOCKS_LIST_START = 0x1;
+	bytes public constant MOCKS_LIST_END = "0xff";
+	bytes32 public constant MOCKS_LIST_END_HASH = keccak256(MOCKS_LIST_END);
+	bytes4 public constant SENTINEL_ANY_MOCKS = 0x1;
 
 	// A linked list allows easy iteration and inclusion checks
 	mapping(bytes32 => bytes) mocks;
@@ -90,7 +90,7 @@ contract MockContract {
 	}
 
 	function reset() public {
-		// Reset all any exact mocks
+		// Reset all exact mocks
 		bytes memory nextMock = mocks[MOCKS_LIST_START];
 		bytes32 mockHash = keccak256(nextMock);
 		// We cannot compary bytes
