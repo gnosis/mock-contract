@@ -3,10 +3,10 @@ pragma solidity ^0.4.23;
 contract MockContract {
 	enum MockType { Return, Revert, OutOfGas }
 	
-	bytes32 public constant MOCKS_LIST_START = 0x1;
+	bytes32 public constant MOCKS_LIST_START = hex"01";
 	bytes public constant MOCKS_LIST_END = "0xff";
 	bytes32 public constant MOCKS_LIST_END_HASH = keccak256(MOCKS_LIST_END);
-	bytes4 public constant SENTINEL_ANY_MOCKS = 0x1;
+	bytes4 public constant SENTINEL_ANY_MOCKS = hex"01";
 
 	// A linked list allows easy iteration and inclusion checks
 	mapping(bytes32 => bytes) mocks;
@@ -19,12 +19,12 @@ contract MockContract {
 	mapping(bytes4 => bytes) expectationsAny;
 	mapping(bytes4 => string) revertMessageAny;
 
-	constructor() {
+	constructor() public {
 		mocks[MOCKS_LIST_START] = MOCKS_LIST_END;
 		anyMocks[SENTINEL_ANY_MOCKS] = SENTINEL_ANY_MOCKS;
 	}
 
-	function trackMock(bytes call) private {
+	function trackMock(bytes memory call) private {
 		bytes32 callHash = keccak256(call);
 		if (mocks[callHash].length == 0) {
 			mocks[callHash] = mocks[MOCKS_LIST_START];
@@ -44,19 +44,19 @@ contract MockContract {
 	 * @param call ABI encoded calldata that if invoked on this contract will return `response`. Parameter values need to match exactly.
 	 * @param response ABI encoded response that will be returned if this contract is invoked with `call`
 	 */
-	function givenReturn(bytes call, bytes response) public {
+	function givenReturn(bytes memory call, bytes memory response) public {
 		mockTypes[call] = MockType.Return;
 		expectations[call] = response;
 		trackMock(call);
 	}
 
-	function givenReturnAny(bytes4 method, bytes response) public {
+	function givenReturnAny(bytes4 method, bytes memory response) public {
 		mockTypesAny[method] = MockType.Return;
 		expectationsAny[method] = response;
 		trackAnyMock(method);		
 	}
 
-	function givenRevert(bytes call) public {
+	function givenRevert(bytes memory call) public {
 		mockTypes[call] = MockType.Revert;
 		revertMessage[call] = "";
 		trackMock(call);
@@ -67,19 +67,19 @@ contract MockContract {
 		trackAnyMock(method);		
 	}
 
-	function givenRevertWithMessage(bytes call, string message) public {
+	function givenRevertWithMessage(bytes memory call, string memory message) public {
 		mockTypes[call] = MockType.Revert;
 		revertMessage[call] = message;
 		trackMock(call);
 	}
 
-	function givenRevertAnyWithMessage(bytes4 method, string message) public {
+	function givenRevertAnyWithMessage(bytes4 method, string memory message) public {
 		mockTypesAny[method] = MockType.Revert;
 		revertMessageAny[method] = message;
 		trackAnyMock(method);		
 	}
 
-	function givenOutOfGas(bytes call) public {
+	function givenOutOfGas(bytes memory call) public {
 		mockTypes[call] = MockType.OutOfGas;
 		trackMock(call);
 	}
@@ -132,7 +132,7 @@ contract MockContract {
 		}
 	}
 
-	function() payable public {
+	function() payable external {
 		bytes4 methodId;
 		assembly {
 			methodId := calldataload(0)
