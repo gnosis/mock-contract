@@ -10,6 +10,9 @@ interface MockInterface {
 	 * @param response ABI encoded response that will be returned if method is invoked
 	 */
 	function givenMethodReturn(bytes method, bytes response) external;
+	function givenMethodReturnBool(bytes method, bool response) external;
+	function givenMethodReturnUint(bytes method, uint response) external;
+	function givenMethodReturnAddress(bytes method, address response) external;
 
 	function givenMethodRevert(bytes method) external;
 	function givenMethodRevertWithMessage(bytes method, string message) external;
@@ -23,6 +26,9 @@ interface MockInterface {
 	 * @param response ABI encoded response that will be returned if contract is invoked with calldata
 	 */
 	function givenCalldataReturn(bytes calldata, bytes response) external;
+	function givenCalldataReturnBool(bytes calldata, bool response) external;
+	function givenCalldataReturnUint(bytes calldata, uint response) external;
+	function givenCalldataReturnAddress(bytes calldata, address response) external;
 
 	function givenCalldataRevert(bytes calldata) external;
 	function givenCalldataRevertWithMessage(bytes calldata, string message) external;
@@ -76,17 +82,51 @@ contract MockContract is MockInterface {
 		}
 	}
 
-	function givenCalldataReturn(bytes call, bytes response) external  {
+	function _givenCalldataReturn(bytes call, bytes response) private  {
 		mockTypes[call] = MockType.Return;
 		expectations[call] = response;
 		trackMock(call);
 	}
 
-	function givenMethodReturn(bytes call, bytes response) external {
+	function givenCalldataReturn(bytes call, bytes response) external  {
+		_givenCalldataReturn(call, response);
+	}
+
+	function givenCalldataReturnBool(bytes call, bool response) external {
+		uint flag = response ? 1 : 0;
+		_givenMethodReturn(call, uintToBytes(flag));
+	}
+
+	function givenCalldataReturnUint(bytes call, uint response) external {
+		_givenMethodReturn(call, uintToBytes(response));
+	}
+
+	function givenCalldataReturnAddress(bytes call, address response) external {
+		_givenMethodReturn(call, addressToBytes(response));
+	}
+
+	function _givenMethodReturn(bytes call, bytes response) private {
 		bytes4 method = bytesToBytes4(call);
 		mockTypesAny[method] = MockType.Return;
 		expectationsAny[method] = response;
 		trackAnyMock(method);		
+	}
+
+	function givenMethodReturn(bytes call, bytes response) external {
+		_givenMethodReturn(call, response);
+	}
+
+	function givenMethodReturnBool(bytes call, bool response) external {
+		uint flag = response ? 1 : 0;
+		_givenMethodReturn(call, uintToBytes(flag));
+	}
+
+	function givenMethodReturnUint(bytes call, uint response) external {
+		_givenMethodReturn(call, uintToBytes(response));
+	}
+
+	function givenMethodReturnAddress(bytes call, address response) external {
+		_givenMethodReturn(call, addressToBytes(response));
 	}
 
 	function givenCalldataRevert(bytes call) external {
@@ -176,6 +216,20 @@ contract MockContract is MockInterface {
     		out |= bytes4(b[i] & 0xFF) >> (i * 8);
   		}
   		return out;
+	}
+
+	function addressToBytes(address a) private pure returns (bytes b){
+   		assembly {
+        	let m := mload(0x40)
+        	mstore(add(m, 20), xor(0x140000000000000000000000000000000000000000, a))
+        	mstore(0x40, add(m, 52))
+        	b := m
+   		}
+	}
+
+	function uintToBytes(uint256 x) private pure returns (bytes b) {
+    	b = new bytes(32);
+    	assembly { mstore(add(b, 32), x) }
 	}
 
 	function() payable external {

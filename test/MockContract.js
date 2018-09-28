@@ -20,7 +20,7 @@ contract('MockContract', function(accounts) {
       const mock = await MockContract.new();
       const complex = ComplexInterface.at(mock.address)
 
-      const encoded = await complex.contract.acceptAdressUintReturnBool.getData("0x0", 10)
+      let encoded = await complex.contract.acceptAdressUintReturnBool.getData("0x0", 10)
       await mock.givenCalldataReturn(encoded, abi.rawEncode(['bool'], [true]).toString())
         
       result = await complex.acceptAdressUintReturnBool.call("0x0", 10)
@@ -33,6 +33,21 @@ contract('MockContract', function(accounts) {
       await mock.reset()
       result = await complex.acceptAdressUintReturnBool.call("0x0", 10)
       assert.equal(result, false)
+
+      // Check convenience methods
+      await mock.givenCalldataReturnBool(encoded, true)
+      result = await complex.acceptAdressUintReturnBool.call("0x0", 10)
+      assert.equal(result, true)
+
+      encoded = await complex.contract.acceptUintReturnUint.getData(7);
+      await mock.givenCalldataReturnUint(encoded, 42)
+      result = await complex.contract.acceptUintReturnUint.call(7);
+      assert.equal(result, 42)
+
+      encoded = await complex.contract.acceptUintReturnAddress.getData(7);
+      await mock.givenCalldataReturnAddress(encoded, accounts[0])
+      result = await complex.contract.acceptUintReturnAddress.call(7);
+      assert.equal(result, accounts[0])
     });
   });
 
@@ -118,7 +133,7 @@ contract('MockContract', function(accounts) {
       const mock = await MockContract.new();
       const complex = ComplexInterface.at(mock.address)
 
-      const methodId = await complex.contract.acceptAdressUintReturnBool.getData(0,0);
+      let methodId = await complex.contract.acceptAdressUintReturnBool.getData(0,0);
       await mock.givenMethodReturn(methodId, abi.rawEncode(['bool'], [true]).toString())
 
       // Check transactions and calls
@@ -130,12 +145,27 @@ contract('MockContract', function(accounts) {
       result = await complex.acceptAdressUintReturnBool.call("0x1", 12)
       assert.equal(result, true)
 
-      // Check that we can reset revert
+      // Check that we can reset mock
       await mock.reset()
       result = await complex.acceptAdressUintReturnBool.call("0x0", 10)
       assert.equal(result, false)
       result = await complex.acceptAdressUintReturnBool.call("0x1", 12)
       assert.equal(result, false)
+
+      // Check convenience methods
+      await mock.givenMethodReturnBool(methodId, true)
+      result = await complex.acceptAdressUintReturnBool.call("0x0", 10)
+      assert.equal(result, true)
+
+      methodId = await complex.contract.acceptUintReturnUint.getData(0);
+      await mock.givenMethodReturnUint(methodId, 42)
+      result = await complex.contract.acceptUintReturnUint.call(0);
+      assert.equal(result, 42)
+
+      methodId = await complex.contract.acceptUintReturnAddress.getData(0);
+      await mock.givenMethodReturnAddress(methodId, accounts[0])
+      result = await complex.contract.acceptUintReturnAddress.call(0);
+      assert.equal(result, accounts[0])
     });
   });
 
