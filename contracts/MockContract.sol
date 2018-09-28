@@ -50,7 +50,8 @@ contract MockContract {
 		trackMock(call);
 	}
 
-	function givenReturnAny(bytes4 method, bytes memory response) public {
+	function givenReturnAny(bytes memory call, bytes memory response) public {
+		bytes4 method = bytesToBytes4(call);
 		mockTypesAny[method] = MockType.Return;
 		expectationsAny[method] = response;
 		trackAnyMock(method);		
@@ -62,7 +63,8 @@ contract MockContract {
 		trackMock(call);
 	}
 
-	function givenRevertAny(bytes4 method) public {
+	function givenRevertAny(bytes memory call) public {
+		bytes4 method = bytesToBytes4(call);
 		mockTypesAny[method] = MockType.Revert;
 		trackAnyMock(method);		
 	}
@@ -73,7 +75,8 @@ contract MockContract {
 		trackMock(call);
 	}
 
-	function givenRevertAnyWithMessage(bytes4 method, string memory message) public {
+	function givenRevertAnyWithMessage(bytes memory call, string memory message) public {
+		bytes4 method = bytesToBytes4(call);
 		mockTypesAny[method] = MockType.Revert;
 		revertMessageAny[method] = message;
 		trackAnyMock(method);		
@@ -84,7 +87,8 @@ contract MockContract {
 		trackMock(call);
 	}
 
-	function givenOutOfGasAny(bytes4 method) public {
+	function givenOutOfGasAny(bytes memory call) public {
+		bytes4 method = bytesToBytes4(call);
 		mockTypesAny[method] = MockType.OutOfGas;
 		trackAnyMock(method);	
 	}
@@ -132,6 +136,14 @@ contract MockContract {
 				s := call(sub(gas, 2000), 6, 0, 0x0, 0xc0, 0x0, 0x60)
 			}
 		}
+	}
+
+	function bytesToBytes4(bytes b) private pure returns (bytes4) {
+  		bytes4 out;
+  		for (uint i = 0; i < 4; i++) {
+    		out |= bytes4(b[i] & 0xFF) >> (i * 8);
+  		}
+  		return out;
 	}
 
 	function() payable external {

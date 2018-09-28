@@ -118,7 +118,7 @@ contract('MockContract', function(accounts) {
       const mock = await MockContract.new();
       const complex = ComplexInterface.at(mock.address)
 
-      const methodId = "0x" + abi.methodID("acceptAdressUintReturnBool", ["address", "uint"]).toString("hex")
+      const methodId = await complex.contract.acceptAdressUintReturnBool.getData(0,0);
       await mock.givenReturnAny(methodId, abi.rawEncode(['bool'], [true]).toString())
 
       // Check transactions and calls
@@ -144,7 +144,7 @@ contract('MockContract', function(accounts) {
       const mock = await MockContract.new();
       const complex = ComplexInterface.at(mock.address)
 
-      const methodId = "0x" + abi.methodID("acceptAdressUintReturnBool", ["address", "uint"]).toString("hex")
+      const methodId = await complex.contract.acceptAdressUintReturnBool.getData(0,0);
       await mock.givenRevertAny(methodId);
 
       // On error it should return the error message for a call
@@ -171,7 +171,7 @@ contract('MockContract', function(accounts) {
       const mock = await MockContract.new();
       const complex = ComplexInterface.at(mock.address)
 
-      const methodId = "0x" + abi.methodID("acceptAdressUintReturnBool", ["address", "uint"]).toString("hex")
+      const methodId = await complex.contract.acceptAdressUintReturnBool.getData(0,0);
       await mock.givenRevertAnyWithMessage(methodId, "This is Sparta!!!");
 
       // On error it should return the error message for a call
@@ -198,7 +198,7 @@ contract('MockContract', function(accounts) {
       const mock = await MockContract.new();
       const complex = ComplexInterface.at(mock.address)
 
-      const methodId = "0x" + abi.methodID("acceptAdressUintReturnBool", ["address", "uint"]).toString("hex")
+      const methodId = await complex.contract.acceptAdressUintReturnBool.getData(0,0);
       await mock.givenOutOfGasAny(methodId);
 
       // On error it should return the error message for a call
