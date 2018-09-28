@@ -2,6 +2,21 @@ pragma solidity ^0.4.23;
 
 interface MockInterface {
 	/**
+	 * @dev After calling this method, the mock will return `response` when it is called
+	 * with any calldata that is not mocked more specifically below
+	 * (e.g. using givenMethodReturn).
+	 * @param response ABI encoded response that will be returned if method is invoked
+	 */
+	function givenAnyReturn(bytes response) external;
+	function givenAnyReturnBool(bool response) external;
+	function givenAnyReturnUint(uint response) external;
+	function givenAnyReturnAddress(address response) external;
+
+	function givenAnyRevert() external;
+	function givenAnyRevertWithMessage(string message) external;
+	function givenAnyRunOutOfGas() external;
+
+	/**
 	 * @dev After calling this method, the mock will return `response` when the given
 	 * methodId is called regardless of arguments. If the methodId and arguments
 	 * are mocked more specifically (using `givenMethodAndArguments`) the latter
@@ -20,8 +35,8 @@ interface MockInterface {
 
 	/**
 	 * @dev After calling this method, the mock will return `response` when the given
-	 * methodId is called with matching arguments. These exact mocks will take
-	 * precedence over all other mocks.
+	 * methodId is called with matching arguments. These exact calldataMocks will take
+	 * precedence over all other calldataMocks.
 	 * @param calldata ABI encoded calldata (methodId and arguments)
 	 * @param response ABI encoded response that will be returned if contract is invoked with calldata
 	 */
@@ -52,40 +67,80 @@ contract MockContract is MockInterface {
 	bytes4 public constant SENTINEL_ANY_MOCKS = hex"01";
 
 	// A linked list allows easy iteration and inclusion checks
-	mapping(bytes32 => bytes) mocks;
-	mapping(bytes => MockType) mockTypes;
-	mapping(bytes => bytes) expectations;
-	mapping(bytes => string) revertMessage;
+	mapping(bytes32 => bytes) calldataMocks;
+	mapping(bytes => MockType) calldataMockTypes;
+	mapping(bytes => bytes) calldataExpectations;
+	mapping(bytes => string) calldataRevertMessage;
 
-	mapping(bytes4 => bytes4) anyMocks;
-	mapping(bytes4 => MockType) mockTypesAny;
-	mapping(bytes4 => bytes) expectationsAny;
-	mapping(bytes4 => string) revertMessageAny;
+	mapping(bytes4 => bytes4) methodIdMocks;
+	mapping(bytes4 => MockType) methodIdMockTypes;
+	mapping(bytes4 => bytes) methodIdExpectations;
+	mapping(bytes4 => string) methodIdRevertMessages;
+
+	MockType fallbackMockType;
+	bytes fallbackExpectation;
+	string fallbackRevertMessage;
 
 	constructor() public {
-		mocks[MOCKS_LIST_START] = MOCKS_LIST_END;
-		anyMocks[SENTINEL_ANY_MOCKS] = SENTINEL_ANY_MOCKS;
+		calldataMocks[MOCKS_LIST_START] = MOCKS_LIST_END;
+		methodIdMocks[SENTINEL_ANY_MOCKS] = SENTINEL_ANY_MOCKS;
 	}
 
-	function trackMock(bytes memory call) private {
+	function trackCalldataMock(bytes memory call) private {
 		bytes32 callHash = keccak256(call);
-		if (mocks[callHash].length == 0) {
-			mocks[callHash] = mocks[MOCKS_LIST_START];
-			mocks[MOCKS_LIST_START] = call;
+		if (calldataMocks[callHash].length == 0) {
+			calldataMocks[callHash] = calldataMocks[MOCKS_LIST_START];
+			calldataMocks[MOCKS_LIST_START] = call;
 		}
 	}
 
-	function trackAnyMock(bytes4 methodId) private {
-		if (anyMocks[methodId] == 0x0) {
-			anyMocks[methodId] = anyMocks[SENTINEL_ANY_MOCKS];
-			anyMocks[SENTINEL_ANY_MOCKS] = methodId;
+	function trackMethodIdMock(bytes4 methodId) private {
+		if (methodIdMocks[methodId] == 0x0) {
+			methodIdMocks[methodId] = methodIdMocks[SENTINEL_ANY_MOCKS];
+			methodIdMocks[SENTINEL_ANY_MOCKS] = methodId;
 		}
+	}
+
+	function _givenAnyReturn(bytes response) internal {
+		fallbackMockType = MockType.Return;
+		fallbackExpectation = response;
+	}
+
+	function givenAnyReturn(bytes response) external {
+		_givenAnyReturn(response);
+	}
+
+	function givenAnyReturnBool(bool response) external {
+		uint flag = response ? 1 : 0;
+		_givenAnyReturn(uintToBytes(flag));
+	}
+
+	function givenAnyReturnUint(uint response) external {
+		_givenAnyReturn(uintToBytes(response));	
+	}
+
+	function givenAnyReturnAddress(address response) external {
+		_givenAnyReturn(addressToBytes(response));
+	}
+
+	function givenAnyRevert() external {
+		fallbackMockType = MockType.Revert;
+		fallbackRevertMessage = "";
+	}
+
+	function givenAnyRevertWithMessage(string message) external {
+		fallbackMockType = MockType.Revert;
+		fallbackRevertMessage = message;
+	}
+
+	function givenAnyRunOutOfGas() external {
+		fallbackMockType = MockType.OutOfGas;
 	}
 
 	function _givenCalldataReturn(bytes call, bytes response) private  {
-		mockTypes[call] = MockType.Return;
-		expectations[call] = response;
-		trackMock(call);
+		calldataMockTypes[call] = MockType.Return;
+		calldataExpectations[call] = response;
+		trackCalldataMock(call);
 	}
 
 	function givenCalldataReturn(bytes call, bytes response) external  {
@@ -107,9 +162,9 @@ contract MockContract is MockInterface {
 
 	function _givenMethodReturn(bytes call, bytes response) private {
 		bytes4 method = bytesToBytes4(call);
-		mockTypesAny[method] = MockType.Return;
-		expectationsAny[method] = response;
-		trackAnyMock(method);		
+		methodIdMockTypes[method] = MockType.Return;
+		methodIdExpectations[method] = response;
+		trackMethodIdMock(method);		
 	}
 
 	function givenMethodReturn(bytes call, bytes response) external {
@@ -130,74 +185,77 @@ contract MockContract is MockInterface {
 	}
 
 	function givenCalldataRevert(bytes call) external {
-		mockTypes[call] = MockType.Revert;
-		revertMessage[call] = "";
-		trackMock(call);
+		calldataMockTypes[call] = MockType.Revert;
+		calldataRevertMessage[call] = "";
+		trackCalldataMock(call);
 	}
 
 	function givenMethodRevert(bytes call) external {
 		bytes4 method = bytesToBytes4(call);
-		mockTypesAny[method] = MockType.Revert;
-		trackAnyMock(method);		
+		methodIdMockTypes[method] = MockType.Revert;
+		trackMethodIdMock(method);		
 	}
 
 	function givenCalldataRevertWithMessage(bytes call, string message) external {
-		mockTypes[call] = MockType.Revert;
-		revertMessage[call] = message;
-		trackMock(call);
+		calldataMockTypes[call] = MockType.Revert;
+		calldataRevertMessage[call] = message;
+		trackCalldataMock(call);
 	}
 
 	function givenMethodRevertWithMessage(bytes call, string message) external {
 		bytes4 method = bytesToBytes4(call);
-		mockTypesAny[method] = MockType.Revert;
-		revertMessageAny[method] = message;
-		trackAnyMock(method);		
+		methodIdMockTypes[method] = MockType.Revert;
+		methodIdRevertMessages[method] = message;
+		trackMethodIdMock(method);		
 	}
 
 	function givenCalldataRunOutOfGas(bytes call) external {
-		mockTypes[call] = MockType.OutOfGas;
-		trackMock(call);
+		calldataMockTypes[call] = MockType.OutOfGas;
+		trackCalldataMock(call);
 	}
 
 	function givenMethodRunOutOfGas(bytes call) external {
 		bytes4 method = bytesToBytes4(call);
-		mockTypesAny[method] = MockType.OutOfGas;
-		trackAnyMock(method);	
+		methodIdMockTypes[method] = MockType.OutOfGas;
+		trackMethodIdMock(method);	
 	}
 
 	function reset() external {
-		// Reset all exact mocks
-		bytes memory nextMock = mocks[MOCKS_LIST_START];
+		// Reset all exact calldataMocks
+		bytes memory nextMock = calldataMocks[MOCKS_LIST_START];
 		bytes32 mockHash = keccak256(nextMock);
 		// We cannot compary bytes
 		while(mockHash != MOCKS_LIST_END_HASH) {
 			// Reset all mock maps
-			mockTypes[nextMock] = MockType.Return;
-			expectations[nextMock] = hex"";
-			revertMessage[nextMock] = "";
+			calldataMockTypes[nextMock] = MockType.Return;
+			calldataExpectations[nextMock] = hex"";
+			calldataRevertMessage[nextMock] = "";
 			// Set next mock to remove
-			nextMock = mocks[mockHash];
+			nextMock = calldataMocks[mockHash];
 			// Remove from linked list
-			mocks[mockHash] = "";
+			calldataMocks[mockHash] = "";
 			// Update mock hash
 			mockHash = keccak256(nextMock);
 		}
 		// Clear list
-		mocks[MOCKS_LIST_START] = MOCKS_LIST_END;
+		calldataMocks[MOCKS_LIST_START] = MOCKS_LIST_END;
 
-		// Reset all any mocks
-		bytes4 nextAnyMock = anyMocks[SENTINEL_ANY_MOCKS];
+		// Reset all any calldataMocks
+		bytes4 nextAnyMock = methodIdMocks[SENTINEL_ANY_MOCKS];
 		while(nextAnyMock != SENTINEL_ANY_MOCKS) {
 			bytes4 currentAnyMock = nextAnyMock;
-			mockTypesAny[currentAnyMock] = MockType.Return;
-			expectationsAny[currentAnyMock] = hex"";
-			revertMessageAny[currentAnyMock] = "";
-			nextAnyMock = anyMocks[currentAnyMock];
+			methodIdMockTypes[currentAnyMock] = MockType.Return;
+			methodIdExpectations[currentAnyMock] = hex"";
+			methodIdRevertMessages[currentAnyMock] = "";
+			nextAnyMock = methodIdMocks[currentAnyMock];
 			// Remove from linked list
-			anyMocks[currentAnyMock] = 0x0;
+			methodIdMocks[currentAnyMock] = 0x0;
 		}
 		// Clear list
-		anyMocks[SENTINEL_ANY_MOCKS] = SENTINEL_ANY_MOCKS;
+		methodIdMocks[SENTINEL_ANY_MOCKS] = SENTINEL_ANY_MOCKS;
+
+		fallbackExpectation = "";
+		fallbackMockType = MockType.Return;
 	}
 
 	function useAllGas() private {
@@ -237,24 +295,38 @@ contract MockContract is MockInterface {
 		assembly {
 			methodId := calldataload(0)
 		}
-		if (mockTypes[msg.data] == MockType.Revert) {
-			revert(revertMessage[msg.data]);
+
+		// First, check exact matching overrides
+		if (calldataMockTypes[msg.data] == MockType.Revert) {
+			revert(calldataRevertMessage[msg.data]);
 		}
-		if (mockTypes[msg.data] == MockType.OutOfGas) {
+		if (calldataMockTypes[msg.data] == MockType.OutOfGas) {
 			useAllGas();
 		}
-		bytes memory result = expectations[msg.data];
+		bytes memory result = calldataExpectations[msg.data];
 
-		// Check any mocks if there is no expected result
+		// Then check method Id overrides
 		if (result.length == 0) {
-			if (mockTypesAny[methodId] == MockType.Revert) {
-				revert(revertMessageAny[methodId]);
+			if (methodIdMockTypes[methodId] == MockType.Revert) {
+				revert(methodIdRevertMessages[methodId]);
 			}
-			if (mockTypesAny[methodId] == MockType.OutOfGas) {
+			if (methodIdMockTypes[methodId] == MockType.OutOfGas) {
 				useAllGas();
 			}
-			result = expectationsAny[methodId];
+			result = methodIdExpectations[methodId];
 		}
+
+		// Last, use the fallback override
+		if (result.length == 0) {
+			if (fallbackMockType == MockType.Revert) {
+				revert(fallbackRevertMessage);
+			}
+			if (fallbackMockType == MockType.OutOfGas) {
+				useAllGas();
+			}
+			result = fallbackExpectation;
+		}
+
 		assembly {
 			return(add(0x20, result), mload(result))
 		}

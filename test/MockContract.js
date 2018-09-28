@@ -15,6 +15,107 @@ contract('MockContract', function(accounts) {
     });
   });
 
+  describe("givenAnyReturn", function() {
+    it("should return the mocked value", async function() {
+      const mock = await MockContract.new();
+      const complex = ComplexInterface.at(mock.address)
+
+      await mock.givenAnyReturn(abi.rawEncode(['bool'], [true]).toString())
+        
+      result = await complex.acceptAdressUintReturnBool.call("0x0", 10)
+      assert.equal(result, true)
+
+      // Check that other methods also return true
+      result = await complex.acceptUintReturnBool.call(10);
+      assert.equal(result, true)
+
+      // Check that we can reset
+      await mock.reset()
+      result = await complex.acceptAdressUintReturnBool.call("0x0", 10)
+      assert.equal(result, false)
+
+      // Check convenience methods
+      await mock.givenAnyReturnBool(true)
+      result = await complex.acceptAdressUintReturnBool.call("0x0", 10)
+      assert.equal(result, true)
+
+      await mock.givenAnyReturnUint(42)
+      result = await complex.contract.acceptUintReturnUint.call(7);
+      assert.equal(result, 42)
+
+      await mock.givenAnyReturnAddress(accounts[0])
+      result = await complex.contract.acceptUintReturnAddress.call(7);
+      assert.equal(result, accounts[0])
+    });
+  });
+
+  describe("givenAnyRevert", function() {
+    it("should revert if mocked", async function() {
+      const mock = await MockContract.new();
+      const complex = ComplexInterface.at(mock.address)
+
+      await mock.givenAnyRevert();
+
+      // On error it should return the error message for a call
+      const encoded = await complex.contract.methodA.getData();
+      error = await utils.getErrorMessage(complex.address, 0, encoded)
+      assert.equal(error, "")
+      await utils.assertRevert(complex.methodA())
+
+      // Check that other calls also error
+      await utils.assertRevert(complex.methodB())
+
+      // Check that we can reset revert
+      await mock.reset()
+
+      // Transaction should be successful
+      await complex.methodA()
+    });
+  });
+
+  describe("givenAnyRevertWithMessage", function() {
+    it("should revert if mocked and return message", async function() {
+      const mock = await MockContract.new();
+      const complex = ComplexInterface.at(mock.address)
+
+      await mock.givenAnyRevertWithMessage("This is Sparta!!!");
+
+      // On error it should return the error message for a call
+      const encoded = await complex.contract.methodA.getData();
+      error = await utils.getErrorMessage(complex.address, 0, encoded)
+      assert.equal(error, "This is Sparta!!!")
+      await utils.assertRevert(complex.methodA())
+
+      // Check that other calls also error
+      await utils.assertRevert(complex.methodB())
+
+      // Check that we can reset revert
+      await mock.reset()
+
+      // Transaction should be successful
+      await complex.methodA()
+    });
+  });
+
+  describe("givenAnyRunOutOfGas", function() {
+    it("should run out of gas if mocked", async function() {
+      const mock = await MockContract.new();
+      const complex = ComplexInterface.at(mock.address)
+
+      await mock.givenAnyRunOutOfGas()
+
+      await utils.assertOutOfGas(complex.methodA())
+
+      // Check that other calls also run out of gas
+      await utils.assertOutOfGas(complex.methodB())
+
+      // Check that we can reset revert
+      await mock.reset()
+      // Transaction should be successful
+      await complex.methodA()
+    });
+  });
+
   describe("givenCalldataReturn", function() {
     it("should return the mocked value", async function() {
       const mock = await MockContract.new();
@@ -29,7 +130,7 @@ contract('MockContract', function(accounts) {
       result = await complex.acceptAdressUintReturnBool.call("0x1", 10);
       assert.equal(result, false)
 
-      // Check that we can reset return
+      // Check that we can reset
       await mock.reset()
       result = await complex.acceptAdressUintReturnBool.call("0x0", 10)
       assert.equal(result, false)
@@ -285,9 +386,15 @@ contract('MockContract', function(accounts) {
       result = await complex.acceptUintReturnString.call(42);
       assert.equal(result, "")
 
-      await mock.givenMethodReturn(methodId, abi.rawEncode(['string'], ["return any"]).toString());
+      // Fallback mock set
+      await mock.givenAnyReturn(abi.rawEncode(['string'], ["fallback"]).toString())
       result = await complex.acceptUintReturnString.call(42);
-      assert.equal(result, "return any")
+      assert.equal(result, "fallback")
+
+      // MethodId mock set
+      await mock.givenMethodReturn(methodId, abi.rawEncode(['string'], ["methodId"]).toString());
+      result = await complex.acceptUintReturnString.call(42);
+      assert.equal(result, "methodId")
 
       await testSpecificMocks(mock, complex)
     });
@@ -300,11 +407,19 @@ contract('MockContract', function(accounts) {
       result = await complex.acceptUintReturnString.call(42);
       assert.equal(result, "")
 
-      await mock.givenMethodRevertWithMessage(methodId, "revert any");
-      await utils.assertRevert(complex.acceptUintReturnString(42))
       const encoded = await complex.contract.acceptUintReturnString.getData(42)
+
+      // Fallback mock set
+      await mock.givenAnyRevertWithMessage('revert fallback')
+      await utils.assertRevert(complex.acceptUintReturnString(42))
       error = await utils.getErrorMessage(complex.address, 0, encoded)
-      assert.equal(error, "revert any")
+      assert.equal(error, "revert fallback")
+
+      // MethodId mock set
+      await mock.givenMethodRevertWithMessage(methodId, "revert method");
+      await utils.assertRevert(complex.acceptUintReturnString(42))
+      error = await utils.getErrorMessage(complex.address, 0, encoded)
+      assert.equal(error, "revert method")
 
       await testSpecificMocks(mock, complex)
     });
@@ -317,6 +432,12 @@ contract('MockContract', function(accounts) {
       result = await complex.acceptUintReturnString.call(42);
       assert.equal(result, "")
 
+      // Fallback mock set
+      await mock.givenAnyReturn(abi.rawEncode(['string'], ["fallback"]).toString())
+      result = await complex.acceptUintReturnString.call(42);
+      assert.equal(result, "fallback")
+
+      // MethodId mock set
       await mock.givenMethodRunOutOfGas(methodId);
       await utils.assertOutOfGas(complex.acceptUintReturnString(42))
 
