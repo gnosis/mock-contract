@@ -1,6 +1,43 @@
 pragma solidity ^0.4.23;
 
-contract MockContract {
+interface MockInterface {
+	/**
+	 * @dev After calling this method, the mock will return `response` when the given
+	 * methodId is called regardless of arguments. If the methodId and arguments
+	 * are mocked more specifically (using `givenMethodAndArguments`) the latter
+	 * will take precedence.
+	 * @param method ABI encoded methodId. It is valid to pass full calldata (including arguments). The mock will extract the methodId from it
+	 * @param response ABI encoded response that will be returned if method is invoked
+	 */
+	function givenMethodReturn(bytes method, bytes response) external;
+
+	function givenMethodRevert(bytes method) external;
+	function givenMethodRevertWithMessage(bytes method, string message) external;
+	function givenMethodRunOutOfGas(bytes method) external;
+
+	/**
+	 * @dev After calling this method, the mock will return `response` when the given
+	 * methodId is called with matching arguments. These exact mocks will take
+	 * precedence over all other mocks.
+	 * @param calldata ABI encoded calldata (methodId and arguments)
+	 * @param response ABI encoded response that will be returned if contract is invoked with calldata
+	 */
+	function givenCalldataReturn(bytes calldata, bytes response) external;
+
+	function givenCalldataRevert(bytes calldata) external;
+	function givenCalldataRevertWithMessage(bytes calldata, string message) external;
+	function givenCalldataRunOutOfGas(bytes calldata) external;
+
+	/**
+	 * @dev Resets all mocked methods and invocation counts.
+	 */
+	 function reset() external;
+}
+
+/**
+ * Implementation of the MockInterface.
+ */
+contract MockContract is MockInterface {
 	enum MockType { Return, Revert, OutOfGas }
 	
 	bytes32 public constant MOCKS_LIST_START = hex"01";
@@ -39,61 +76,56 @@ contract MockContract {
 		}
 	}
 
-	/**
-	 * @dev Stores a response that the contract will return if the fallback function is called with the given method name and matching arguments.
-	 * @param call ABI encoded calldata that if invoked on this contract will return `response`. Parameter values need to match exactly.
-	 * @param response ABI encoded response that will be returned if this contract is invoked with `call`
-	 */
-	function givenReturn(bytes memory call, bytes memory response) public {
+	function givenCalldataReturn(bytes call, bytes response) external  {
 		mockTypes[call] = MockType.Return;
 		expectations[call] = response;
 		trackMock(call);
 	}
 
-	function givenReturnAny(bytes memory call, bytes memory response) public {
+	function givenMethodReturn(bytes call, bytes response) external {
 		bytes4 method = bytesToBytes4(call);
 		mockTypesAny[method] = MockType.Return;
 		expectationsAny[method] = response;
 		trackAnyMock(method);		
 	}
 
-	function givenRevert(bytes memory call) public {
+	function givenCalldataRevert(bytes call) external {
 		mockTypes[call] = MockType.Revert;
 		revertMessage[call] = "";
 		trackMock(call);
 	}
 
-	function givenRevertAny(bytes memory call) public {
+	function givenMethodRevert(bytes call) external {
 		bytes4 method = bytesToBytes4(call);
 		mockTypesAny[method] = MockType.Revert;
 		trackAnyMock(method);		
 	}
 
-	function givenRevertWithMessage(bytes memory call, string memory message) public {
+	function givenCalldataRevertWithMessage(bytes call, string message) external {
 		mockTypes[call] = MockType.Revert;
 		revertMessage[call] = message;
 		trackMock(call);
 	}
 
-	function givenRevertAnyWithMessage(bytes memory call, string memory message) public {
+	function givenMethodRevertWithMessage(bytes call, string message) external {
 		bytes4 method = bytesToBytes4(call);
 		mockTypesAny[method] = MockType.Revert;
 		revertMessageAny[method] = message;
 		trackAnyMock(method);		
 	}
 
-	function givenOutOfGas(bytes memory call) public {
+	function givenCalldataRunOutOfGas(bytes call) external {
 		mockTypes[call] = MockType.OutOfGas;
 		trackMock(call);
 	}
 
-	function givenOutOfGasAny(bytes memory call) public {
+	function givenMethodRunOutOfGas(bytes call) external {
 		bytes4 method = bytesToBytes4(call);
 		mockTypesAny[method] = MockType.OutOfGas;
 		trackAnyMock(method);	
 	}
 
-	function reset() public {
+	function reset() external {
 		// Reset all exact mocks
 		bytes memory nextMock = mocks[MOCKS_LIST_START];
 		bytes32 mockHash = keccak256(nextMock);

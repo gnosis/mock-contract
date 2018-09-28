@@ -15,13 +15,13 @@ contract('MockContract', function(accounts) {
     });
   });
 
-  describe("givenReturn", function() {
+  describe("givenCalldataReturn", function() {
     it("should return the mocked value", async function() {
       const mock = await MockContract.new();
       const complex = ComplexInterface.at(mock.address)
 
       const encoded = await complex.contract.acceptAdressUintReturnBool.getData("0x0", 10)
-      await mock.givenReturn(encoded, abi.rawEncode(['bool'], [true]).toString())
+      await mock.givenCalldataReturn(encoded, abi.rawEncode(['bool'], [true]).toString())
         
       result = await complex.acceptAdressUintReturnBool.call("0x0", 10)
       assert.equal(result, true)
@@ -36,13 +36,13 @@ contract('MockContract', function(accounts) {
     });
   });
 
-  describe("givenRevert", function() {
+  describe("givenCalldataRevert", function() {
     it("should revert if mocked", async function() {
       const mock = await MockContract.new();
       const complex = ComplexInterface.at(mock.address)
 
       const encoded = await complex.contract.acceptAdressUintReturnBool.getData("0x0", 10);
-      await mock.givenRevert(encoded);
+      await mock.givenCalldataRevert(encoded);
 
       // On error it should return the error message for a call
       error = await utils.getErrorMessage(complex.address, 0, encoded)
@@ -60,13 +60,13 @@ contract('MockContract', function(accounts) {
     });
   });
 
-  describe("givenRevertWithMessage", function() {
+  describe("givenCalldataRevertWithMessage", function() {
       it("should revert if mocked and return message", async function() {
         const mock = await MockContract.new();
         const complex = ComplexInterface.at(mock.address)
   
         const encoded = await complex.contract.acceptAdressUintReturnBool.getData("0x0", 10);
-        await mock.givenRevertWithMessage(encoded, "This is Sparta!!!");
+        await mock.givenCalldataRevertWithMessage(encoded, "This is Sparta!!!");
   
         // On error it should return the error message for a call
         error = await utils.getErrorMessage(complex.address, 0, encoded)
@@ -85,13 +85,13 @@ contract('MockContract', function(accounts) {
       });
   });
 
-  describe("givenOutOfGas", function() {
+  describe("givenCalldataRunOutOfGas", function() {
     it("should run out of gas if mocked", async function() {
       const mock = await MockContract.new();
       const complex = ComplexInterface.at(mock.address)
 
       const encoded = await complex.contract.acceptAdressUintReturnBool.getData("0x0", 10);
-      await mock.givenOutOfGas(encoded);
+      await mock.givenCalldataRunOutOfGas(encoded);
 
       // On error it should return the error message for a call
       error = await utils.getErrorMessage(complex.address, 0, encoded)
@@ -113,13 +113,13 @@ contract('MockContract', function(accounts) {
   /*
    * Tests for "any" functionality
    */
-  describe("givenReturnAny", function() {
+  describe("givenMethodReturn", function() {
     it("should return the mocked value", async function() {
       const mock = await MockContract.new();
       const complex = ComplexInterface.at(mock.address)
 
       const methodId = await complex.contract.acceptAdressUintReturnBool.getData(0,0);
-      await mock.givenReturnAny(methodId, abi.rawEncode(['bool'], [true]).toString())
+      await mock.givenMethodReturn(methodId, abi.rawEncode(['bool'], [true]).toString())
 
       // Check transactions and calls
       complex.acceptAdressUintReturnBool("0x0", 10)
@@ -139,13 +139,13 @@ contract('MockContract', function(accounts) {
     });
   });
 
-  describe("givenRevertAny", function() {
+  describe("givenMethodRevert", function() {
     it("should revert if mocked", async function() {
       const mock = await MockContract.new();
       const complex = ComplexInterface.at(mock.address)
 
       const methodId = await complex.contract.acceptAdressUintReturnBool.getData(0,0);
-      await mock.givenRevertAny(methodId);
+      await mock.givenMethodRevert(methodId);
 
       // On error it should return the error message for a call
       var encoded = await complex.contract.acceptAdressUintReturnBool.getData("0x0", 10);
@@ -166,13 +166,13 @@ contract('MockContract', function(accounts) {
     });
   });
 
-  describe("givenRevertAnyWithMessage", function() {
+  describe("givenMethodRevertWithMessage", function() {
     it("should revert if mocked and return message", async function() {
       const mock = await MockContract.new();
       const complex = ComplexInterface.at(mock.address)
 
       const methodId = await complex.contract.acceptAdressUintReturnBool.getData(0,0);
-      await mock.givenRevertAnyWithMessage(methodId, "This is Sparta!!!");
+      await mock.givenMethodRevertWithMessage(methodId, "This is Sparta!!!");
 
       // On error it should return the error message for a call
       var encoded = await complex.contract.acceptAdressUintReturnBool.getData("0x0", 10);
@@ -193,13 +193,13 @@ contract('MockContract', function(accounts) {
     });
   });
 
-  describe("givenOutOfGasAny", function() {
+  describe("givenMethodRunOutOfGas", function() {
     it("should run out of gas if mocked", async function() {
       const mock = await MockContract.new();
       const complex = ComplexInterface.at(mock.address)
 
       const methodId = await complex.contract.acceptAdressUintReturnBool.getData(0,0);
-      await mock.givenOutOfGasAny(methodId);
+      await mock.givenMethodRunOutOfGas(methodId);
 
       // On error it should return the error message for a call
       var encoded = await complex.contract.acceptAdressUintReturnBool.getData("0x0", 10);
@@ -225,19 +225,19 @@ contract('MockContract', function(accounts) {
     const methodId = "0x" + abi.methodID("acceptUintReturnString", ["uint"]).toString("hex")
     const testSpecificMocks = async function (mock, complex) {
       const encoded = await complex.contract.acceptUintReturnString.getData(42)
-      await mock.givenReturn(encoded, abi.rawEncode(['string'], ["return specific"]).toString());
+      await mock.givenCalldataReturn(encoded, abi.rawEncode(['string'], ["return specific"]).toString());
       result = await complex.acceptUintReturnString.call(42);
       // Specific mock should be prioritized over any mock
       assert.equal(result, "return specific")
 
-      await mock.givenRevert(encoded);
+      await mock.givenCalldataRevert(encoded);
       await utils.assertRevert(complex.acceptUintReturnString(42))
 
-      await mock.givenRevertWithMessage(encoded, "revert specific");
+      await mock.givenCalldataRevertWithMessage(encoded, "revert specific");
       error = await utils.getErrorMessage(complex.address, 0, encoded)
       assert.equal(error, "revert specific")
 
-      await mock.givenOutOfGas(encoded);
+      await mock.givenCalldataRunOutOfGas(encoded);
       await utils.assertOutOfGas(complex.acceptUintReturnString(42))
 
       // Check that we can reset revert
@@ -255,7 +255,7 @@ contract('MockContract', function(accounts) {
       result = await complex.acceptUintReturnString.call(42);
       assert.equal(result, "")
 
-      await mock.givenReturnAny(methodId, abi.rawEncode(['string'], ["return any"]).toString());
+      await mock.givenMethodReturn(methodId, abi.rawEncode(['string'], ["return any"]).toString());
       result = await complex.acceptUintReturnString.call(42);
       assert.equal(result, "return any")
 
@@ -270,7 +270,7 @@ contract('MockContract', function(accounts) {
       result = await complex.acceptUintReturnString.call(42);
       assert.equal(result, "")
 
-      await mock.givenRevertAnyWithMessage(methodId, "revert any");
+      await mock.givenMethodRevertWithMessage(methodId, "revert any");
       await utils.assertRevert(complex.acceptUintReturnString(42))
       const encoded = await complex.contract.acceptUintReturnString.getData(42)
       error = await utils.getErrorMessage(complex.address, 0, encoded)
@@ -287,7 +287,7 @@ contract('MockContract', function(accounts) {
       result = await complex.acceptUintReturnString.call(42);
       assert.equal(result, "")
 
-      await mock.givenOutOfGasAny(methodId);
+      await mock.givenMethodRunOutOfGas(methodId);
       await utils.assertOutOfGas(complex.acceptUintReturnString(42))
 
       await testSpecificMocks(mock, complex)
