@@ -126,8 +126,10 @@ contract MockContract {
 
 	function useAllGas() private {
 		while(true) {
+			bool s;
 			assembly {
-				sstore(sload(0x40), 1)
+				//expensive call to EC multiply contract
+				s := call(sub(gas, 2000), 6, 0, 0x0, 0xc0, 0x0, 0x60)
 			}
 		}
 	}
