@@ -50,6 +50,23 @@ interface MockInterface {
 	function givenCalldataRunOutOfGas(bytes calldata) external;
 
 	/**
+	 * @dev Returns the number of times anything has been called on this mock since last reset
+	 */
+	function invocationCount() external returns (uint);
+
+	/**
+	 * @dev Returns the number of times the given method has been called on this mock since last reset
+	 * @param method ABI encoded methodId. It is valid to pass full calldata (including arguments). The mock will extract the methodId from it
+	 */
+	function invocationCountForMethod(bytes method) external returns (uint);
+
+	/**
+	 * @dev Returns the number of times this mock has been called with the exact calldata since last reset.
+	 * @param calldata ABI encoded calldata (methodId and arguments)
+	 */
+	function invocationCountForCalldata(bytes calldata) external returns (uint);
+
+	/**
 	 * @dev Resets all mocked methods and invocation counts.
 	 */
 	 function reset() external;
@@ -71,15 +88,19 @@ contract MockContract is MockInterface {
 	mapping(bytes => MockType) calldataMockTypes;
 	mapping(bytes => bytes) calldataExpectations;
 	mapping(bytes => string) calldataRevertMessage;
+	mapping(bytes32 => uint) calldataInvocations;
 
 	mapping(bytes4 => bytes4) methodIdMocks;
 	mapping(bytes4 => MockType) methodIdMockTypes;
 	mapping(bytes4 => bytes) methodIdExpectations;
 	mapping(bytes4 => string) methodIdRevertMessages;
+	mapping(bytes32 => uint) methodIdInvocations;
 
 	MockType fallbackMockType;
 	bytes fallbackExpectation;
 	string fallbackRevertMessage;
+	uint invocations;
+	uint resetCount;
 
 	constructor() public {
 		calldataMocks[MOCKS_LIST_START] = MOCKS_LIST_END;
@@ -220,6 +241,19 @@ contract MockContract is MockInterface {
 		trackMethodIdMock(method);	
 	}
 
+	function invocationCount() external returns (uint) {
+		return invocations;
+	}
+
+	function invocationCountForMethod(bytes call) external returns (uint) {
+		bytes4 method = bytesToBytes4(call);
+		return methodIdInvocations[keccak256(abi.encodePacked(resetCount, method))];
+	}
+
+	function invocationCountForCalldata(bytes call) external returns (uint) {
+		return calldataInvocations[keccak256(abi.encodePacked(resetCount, call))];
+	}
+
 	function reset() external {
 		// Reset all exact calldataMocks
 		bytes memory nextMock = calldataMocks[MOCKS_LIST_START];
@@ -256,6 +290,8 @@ contract MockContract is MockInterface {
 
 		fallbackExpectation = "";
 		fallbackMockType = MockType.Return;
+		invocations = 0;
+		resetCount += 1;
 	}
 
 	function useAllGas() private {
@@ -326,6 +362,11 @@ contract MockContract is MockInterface {
 			}
 			result = fallbackExpectation;
 		}
+
+		// Record invocation
+		invocations += 1;
+		methodIdInvocations[keccak256(abi.encodePacked(resetCount, methodId))] += 1;
+		calldataInvocations[keccak256(abi.encodePacked(resetCount, msg.data))] += 1;
 
 		assembly {
 			return(add(0x20, result), mload(result))

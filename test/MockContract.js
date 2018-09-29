@@ -444,4 +444,46 @@ contract('MockContract', function(accounts) {
       await testSpecificMocks(mock, complex)
     });
   });
+
+  describe("invocationCount", function() {
+    it("returns the correct invocation count", async function() {
+      const mock = await MockContract.new()
+      const complex = ComplexInterface.at(mock.address)
+
+      const calldata = await complex.contract.acceptUintReturnString.getData(42)
+
+      // Initially everything at 0
+      let count = await mock.invocationCount.call()
+      assert.equal(count, 0)
+
+      count = await mock.invocationCountForMethod.call(calldata)
+      assert.equal(count, 0)
+
+      count = await mock.invocationCountForCalldata.call(calldata)
+      assert.equal(count, 0)
+
+      // Make a few calls and assert count
+      await complex.methodA();
+      await complex.acceptUintReturnString(42);
+      await complex.acceptUintReturnString(-1);
+
+      count = await mock.invocationCount.call()
+      assert.equal(count, 3)
+
+      count = await mock.invocationCountForMethod.call(calldata)
+      assert.equal(count, 2)
+
+      count = await mock.invocationCountForCalldata.call(calldata)
+      assert.equal(count, 1)
+
+      // After reset everything at 0 again
+      await mock.reset()
+      count = await mock.invocationCount.call()
+      assert.equal(count, 0)
+      count = await mock.invocationCountForMethod.call(calldata)
+      assert.equal(count, 0)
+      count = await mock.invocationCountForCalldata.call(calldata)
+      assert.equal(count, 0)
+    });
+  });
 });
