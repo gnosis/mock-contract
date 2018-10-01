@@ -170,15 +170,15 @@ contract MockContract is MockInterface {
 
 	function givenCalldataReturnBool(bytes call, bool response) external {
 		uint flag = response ? 1 : 0;
-		_givenMethodReturn(call, uintToBytes(flag));
+		_givenCalldataReturn(call, uintToBytes(flag));
 	}
 
 	function givenCalldataReturnUint(bytes call, uint response) external {
-		_givenMethodReturn(call, uintToBytes(response));
+		_givenCalldataReturn(call, uintToBytes(response));
 	}
 
 	function givenCalldataReturnAddress(bytes call, address response) external {
-		_givenMethodReturn(call, addressToBytes(response));
+		_givenCalldataReturn(call, addressToBytes(response));
 	}
 
 	function _givenMethodReturn(bytes call, bytes response) private {

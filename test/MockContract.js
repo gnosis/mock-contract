@@ -150,6 +150,23 @@ contract('MockContract', function(accounts) {
       result = await complex.contract.acceptUintReturnAddress.call(7);
       assert.equal(result, accounts[0])
     });
+
+    it("should allow mocking the same method with different paramters", async function() {
+      const mock = await MockContract.new();
+      const complex = ComplexInterface.at(mock.address)
+
+      encodedA = await complex.contract.acceptUintReturnUint.getData(7);
+      encodedB = await complex.contract.acceptUintReturnUint.getData(8);
+
+      await mock.givenCalldataReturnUint(encodedA, 7)
+      await mock.givenCalldataReturnUint(encodedB, 8)
+
+      let result = await complex.acceptUintReturnUint.call(7)
+      assert.equal(7, result)
+
+      result = await complex.acceptUintReturnUint.call(8)
+      assert.equal(8, result)
+    })
   });
 
   describe("givenCalldataRevert", function() {
