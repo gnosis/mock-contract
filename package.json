@@ -20,6 +20,7 @@
     "stub",
     "contract"
   ],
+  "homepage": "https://github.com/fleupold/mock-contract"
   "author": "Felix Leupold",
   "license": "ISC",
   "devDependencies": {

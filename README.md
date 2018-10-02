@@ -117,7 +117,7 @@ it('should fail if we fail to refund', async () => {
   const transfer = token.contract.transfer.getData(0,0) // arguments don't matter
 
   await mock.givenMethodReturnBool(transferFrom, true)
-  await mock.givenAnyReturnBool(false)
+  await mock.givenMethodReturnBool(transfer, false)
 
   try {
     await auction.bid({from: accounts[1]})
