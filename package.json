@@ -1,6 +1,6 @@
 {
   "name": "@gnosis.pm/mock-contract",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Simple Solidity contract to mock dependent contracts in truffle tests.",
   "main": "truffle-config.js",
   "files": [
@@ -20,7 +20,7 @@
     "stub",
     "contract"
   ],
-  "homepage": "https://github.com/fleupold/mock-contract"
+  "homepage": "https://github.com/fleupold/mock-contract",
   "author": "Felix Leupold",
   "license": "ISC",
   "devDependencies": {
