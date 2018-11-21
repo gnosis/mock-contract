@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity ^0.5.0;
 
 interface MockInterface {
 	/**
@@ -7,13 +7,13 @@ interface MockInterface {
 	 * (e.g. using givenMethodReturn).
 	 * @param response ABI encoded response that will be returned if method is invoked
 	 */
-	function givenAnyReturn(bytes response) external;
+	function givenAnyReturn(bytes calldata response) external;
 	function givenAnyReturnBool(bool response) external;
 	function givenAnyReturnUint(uint response) external;
 	function givenAnyReturnAddress(address response) external;
 
 	function givenAnyRevert() external;
-	function givenAnyRevertWithMessage(string message) external;
+	function givenAnyRevertWithMessage(string calldata message) external;
 	function givenAnyRunOutOfGas() external;
 
 	/**
@@ -24,30 +24,30 @@ interface MockInterface {
 	 * @param method ABI encoded methodId. It is valid to pass full calldata (including arguments). The mock will extract the methodId from it
 	 * @param response ABI encoded response that will be returned if method is invoked
 	 */
-	function givenMethodReturn(bytes method, bytes response) external;
-	function givenMethodReturnBool(bytes method, bool response) external;
-	function givenMethodReturnUint(bytes method, uint response) external;
-	function givenMethodReturnAddress(bytes method, address response) external;
+	function givenMethodReturn(bytes calldata method, bytes calldata response) external;
+	function givenMethodReturnBool(bytes calldata method, bool response) external;
+	function givenMethodReturnUint(bytes calldata method, uint response) external;
+	function givenMethodReturnAddress(bytes calldata method, address response) external;
 
-	function givenMethodRevert(bytes method) external;
-	function givenMethodRevertWithMessage(bytes method, string message) external;
-	function givenMethodRunOutOfGas(bytes method) external;
+	function givenMethodRevert(bytes calldata method) external;
+	function givenMethodRevertWithMessage(bytes calldata method, string calldata message) external;
+	function givenMethodRunOutOfGas(bytes calldata method) external;
 
 	/**
 	 * @dev After calling this method, the mock will return `response` when the given
 	 * methodId is called with matching arguments. These exact calldataMocks will take
 	 * precedence over all other calldataMocks.
-	 * @param calldata ABI encoded calldata (methodId and arguments)
+	 * @param call ABI encoded calldata (methodId and arguments)
 	 * @param response ABI encoded response that will be returned if contract is invoked with calldata
 	 */
-	function givenCalldataReturn(bytes calldata, bytes response) external;
-	function givenCalldataReturnBool(bytes calldata, bool response) external;
-	function givenCalldataReturnUint(bytes calldata, uint response) external;
-	function givenCalldataReturnAddress(bytes calldata, address response) external;
+	function givenCalldataReturn(bytes calldata call, bytes calldata response) external;
+	function givenCalldataReturnBool(bytes calldata call, bool response) external;
+	function givenCalldataReturnUint(bytes calldata call, uint response) external;
+	function givenCalldataReturnAddress(bytes calldata call, address response) external;
 
-	function givenCalldataRevert(bytes calldata) external;
-	function givenCalldataRevertWithMessage(bytes calldata, string message) external;
-	function givenCalldataRunOutOfGas(bytes calldata) external;
+	function givenCalldataRevert(bytes calldata data) external;
+	function givenCalldataRevertWithMessage(bytes calldata data, string calldata message) external;
+	function givenCalldataRunOutOfGas(bytes calldata data) external;
 
 	/**
 	 * @dev Returns the number of times anything has been called on this mock since last reset
@@ -58,13 +58,13 @@ interface MockInterface {
 	 * @dev Returns the number of times the given method has been called on this mock since last reset
 	 * @param method ABI encoded methodId. It is valid to pass full calldata (including arguments). The mock will extract the methodId from it
 	 */
-	function invocationCountForMethod(bytes method) external returns (uint);
+	function invocationCountForMethod(bytes calldata method) external returns (uint);
 
 	/**
 	 * @dev Returns the number of times this mock has been called with the exact calldata since last reset.
-	 * @param calldata ABI encoded calldata (methodId and arguments)
+	 * @param call ABI encoded calldata (methodId and arguments)
 	 */
-	function invocationCountForCalldata(bytes calldata) external returns (uint);
+	function invocationCountForCalldata(bytes calldata call) external returns (uint);
 
 	/**
 	 * @dev Resets all mocked methods and invocation counts.
@@ -122,12 +122,12 @@ contract MockContract is MockInterface {
 		}
 	}
 
-	function _givenAnyReturn(bytes response) internal {
+	function _givenAnyReturn(bytes memory response) internal {
 		fallbackMockType = MockType.Return;
 		fallbackExpectation = response;
 	}
 
-	function givenAnyReturn(bytes response) external {
+	function givenAnyReturn(bytes calldata response) external {
 		_givenAnyReturn(response);
 	}
 
@@ -149,7 +149,7 @@ contract MockContract is MockInterface {
 		fallbackRevertMessage = "";
 	}
 
-	function givenAnyRevertWithMessage(string message) external {
+	function givenAnyRevertWithMessage(string calldata message) external {
 		fallbackMockType = MockType.Revert;
 		fallbackRevertMessage = message;
 	}
@@ -158,84 +158,84 @@ contract MockContract is MockInterface {
 		fallbackMockType = MockType.OutOfGas;
 	}
 
-	function _givenCalldataReturn(bytes call, bytes response) private  {
+	function _givenCalldataReturn(bytes memory call, bytes memory response) private  {
 		calldataMockTypes[call] = MockType.Return;
 		calldataExpectations[call] = response;
 		trackCalldataMock(call);
 	}
 
-	function givenCalldataReturn(bytes call, bytes response) external  {
+	function givenCalldataReturn(bytes calldata call, bytes calldata response) external  {
 		_givenCalldataReturn(call, response);
 	}
 
-	function givenCalldataReturnBool(bytes call, bool response) external {
+	function givenCalldataReturnBool(bytes calldata call, bool response) external {
 		uint flag = response ? 1 : 0;
 		_givenCalldataReturn(call, uintToBytes(flag));
 	}
 
-	function givenCalldataReturnUint(bytes call, uint response) external {
+	function givenCalldataReturnUint(bytes calldata call, uint response) external {
 		_givenCalldataReturn(call, uintToBytes(response));
 	}
 
-	function givenCalldataReturnAddress(bytes call, address response) external {
+	function givenCalldataReturnAddress(bytes calldata call, address response) external {
 		_givenCalldataReturn(call, addressToBytes(response));
 	}
 
-	function _givenMethodReturn(bytes call, bytes response) private {
+	function _givenMethodReturn(bytes memory call, bytes memory response) private {
 		bytes4 method = bytesToBytes4(call);
 		methodIdMockTypes[method] = MockType.Return;
 		methodIdExpectations[method] = response;
 		trackMethodIdMock(method);		
 	}
 
-	function givenMethodReturn(bytes call, bytes response) external {
+	function givenMethodReturn(bytes calldata call, bytes calldata response) external {
 		_givenMethodReturn(call, response);
 	}
 
-	function givenMethodReturnBool(bytes call, bool response) external {
+	function givenMethodReturnBool(bytes calldata call, bool response) external {
 		uint flag = response ? 1 : 0;
 		_givenMethodReturn(call, uintToBytes(flag));
 	}
 
-	function givenMethodReturnUint(bytes call, uint response) external {
+	function givenMethodReturnUint(bytes calldata call, uint response) external {
 		_givenMethodReturn(call, uintToBytes(response));
 	}
 
-	function givenMethodReturnAddress(bytes call, address response) external {
+	function givenMethodReturnAddress(bytes calldata call, address response) external {
 		_givenMethodReturn(call, addressToBytes(response));
 	}
 
-	function givenCalldataRevert(bytes call) external {
+	function givenCalldataRevert(bytes calldata call) external {
 		calldataMockTypes[call] = MockType.Revert;
 		calldataRevertMessage[call] = "";
 		trackCalldataMock(call);
 	}
 
-	function givenMethodRevert(bytes call) external {
+	function givenMethodRevert(bytes calldata call) external {
 		bytes4 method = bytesToBytes4(call);
 		methodIdMockTypes[method] = MockType.Revert;
 		trackMethodIdMock(method);		
 	}
 
-	function givenCalldataRevertWithMessage(bytes call, string message) external {
+	function givenCalldataRevertWithMessage(bytes calldata call, string calldata message) external {
 		calldataMockTypes[call] = MockType.Revert;
 		calldataRevertMessage[call] = message;
 		trackCalldataMock(call);
 	}
 
-	function givenMethodRevertWithMessage(bytes call, string message) external {
+	function givenMethodRevertWithMessage(bytes calldata call, string calldata message) external {
 		bytes4 method = bytesToBytes4(call);
 		methodIdMockTypes[method] = MockType.Revert;
 		methodIdRevertMessages[method] = message;
 		trackMethodIdMock(method);		
 	}
 
-	function givenCalldataRunOutOfGas(bytes call) external {
+	function givenCalldataRunOutOfGas(bytes calldata call) external {
 		calldataMockTypes[call] = MockType.OutOfGas;
 		trackCalldataMock(call);
 	}
 
-	function givenMethodRunOutOfGas(bytes call) external {
+	function givenMethodRunOutOfGas(bytes calldata call) external {
 		bytes4 method = bytesToBytes4(call);
 		methodIdMockTypes[method] = MockType.OutOfGas;
 		trackMethodIdMock(method);	
@@ -245,12 +245,12 @@ contract MockContract is MockInterface {
 		return invocations;
 	}
 
-	function invocationCountForMethod(bytes call) external returns (uint) {
+	function invocationCountForMethod(bytes calldata call) external returns (uint) {
 		bytes4 method = bytesToBytes4(call);
 		return methodIdInvocations[keccak256(abi.encodePacked(resetCount, method))];
 	}
 
-	function invocationCountForCalldata(bytes call) external returns (uint) {
+	function invocationCountForCalldata(bytes calldata call) external returns (uint) {
 		return calldataInvocations[keccak256(abi.encodePacked(resetCount, call))];
 	}
 
@@ -304,7 +304,7 @@ contract MockContract is MockInterface {
 		}
 	}
 
-	function bytesToBytes4(bytes b) private pure returns (bytes4) {
+	function bytesToBytes4(bytes memory b) private pure returns (bytes4) {
   		bytes4 out;
   		for (uint i = 0; i < 4; i++) {
     		out |= bytes4(b[i] & 0xFF) >> (i * 8);
@@ -312,7 +312,7 @@ contract MockContract is MockInterface {
   		return out;
 	}
 
-	function addressToBytes(address a) private pure returns (bytes b){
+	function addressToBytes(address a) private pure returns (bytes memory b){
    		assembly {
         	let m := mload(0x40)
         	mstore(add(m, 20), xor(0x140000000000000000000000000000000000000000, a))
@@ -321,7 +321,7 @@ contract MockContract is MockInterface {
    		}
 	}
 
-	function uintToBytes(uint256 x) private pure returns (bytes b) {
+	function uintToBytes(uint256 x) private pure returns (bytes memory b) {
     	b = new bytes(32);
     	assembly { mstore(add(b, 32), x) }
 	}
