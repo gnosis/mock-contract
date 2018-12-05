@@ -35,9 +35,22 @@ async function getErrorMessage(to, value, data, from) {
     return abi.rawDecode(["string"], returnBuffer.slice(4))[0]
 }
 
+// Only for tests, as its fixed to default web3: http://localhost:8545
+async function getRPCResult(params) {
+    return new Promise((resolve, reject) => {
+        web3.currentProvider.sendAsync({
+            method: "eth_call",
+            params,
+            jsonrpc: "2.0",
+            id: new Date().getTime()
+        }, (e, result) => (e ? reject(e) : resolve(result)))
+    })
+}
+
 Object.assign(exports, {
     assertRejects,
     getErrorMessage,
     assertOutOfGas,
     assertRevert,
+    getRPCResult
 })
