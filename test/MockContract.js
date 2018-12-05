@@ -33,6 +33,10 @@ contract('MockContract', function(accounts) {
       await mock.reset()
       result = await complex.acceptAdressUintReturnBool.call("0x0", 10)
       assert.equal(result, false)
+      result = await complex.contract.acceptUintReturnUint.call(7);
+      assert.equal(result, 0)
+      result = await complex.contract.acceptUintReturnAddress.call(7);
+      assert.equal(result, 0x0)
 
       // Check convenience methods
       await mock.givenAnyReturnBool(true)

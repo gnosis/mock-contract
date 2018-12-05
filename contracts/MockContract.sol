@@ -97,7 +97,7 @@ contract MockContract is MockInterface {
 	mapping(bytes32 => uint) methodIdInvocations;
 
 	MockType fallbackMockType;
-	bytes fallbackExpectation;
+	bytes fallbackExpectation = abi.encode(0);
 	string fallbackRevertMessage;
 	uint invocations;
 	uint resetCount;
@@ -288,7 +288,7 @@ contract MockContract is MockInterface {
 		// Clear list
 		methodIdMocks[SENTINEL_ANY_MOCKS] = SENTINEL_ANY_MOCKS;
 
-		fallbackExpectation = "";
+		fallbackExpectation = abi.encode(0);
 		fallbackMockType = MockType.Return;
 		invocations = 0;
 		resetCount += 1;
