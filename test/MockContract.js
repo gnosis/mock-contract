@@ -391,8 +391,9 @@ contract('MockContract', function(accounts) {
       // Check that we can reset revert
       await mock.reset()
       // Transactions should be successful
-      result = await complex.acceptUintReturnString.call(42);
-      assert.equal(result, "")
+      const request = complex.acceptUintReturnString.request([42])
+      response = await utils.getRPCResult(request.params);
+      assert.equal(response.result, "0x")
     }
 
     it("all specific mocks should be prioritized over return any mock", async function() {
@@ -400,11 +401,13 @@ contract('MockContract', function(accounts) {
       const complex = ComplexInterface.at(mock.address)
 
       // No mock set
-      result = await complex.acceptUintReturnString.call(42);
-      assert.equal(result, "")
+      const request = complex.acceptUintReturnString.request([42])
+      response = await utils.getRPCResult(request.params);
+      assert.equal(response.result, "0x")
 
       // Fallback mock set
       await mock.givenAnyReturn(abi.rawEncode(['string'], ["fallback"]).toString())
+      response = await utils.getRPCResult(request.params);
       result = await complex.acceptUintReturnString.call(42);
       assert.equal(result, "fallback")
 
@@ -421,8 +424,9 @@ contract('MockContract', function(accounts) {
       const complex = ComplexInterface.at(mock.address)
 
       // No mock set
-      result = await complex.acceptUintReturnString.call(42);
-      assert.equal(result, "")
+      const request = complex.acceptUintReturnString.request([42])
+      response = await utils.getRPCResult(request.params);
+      assert.equal(response.result, "0x")
 
       const encoded = await complex.contract.acceptUintReturnString.getData(42)
 
@@ -446,8 +450,9 @@ contract('MockContract', function(accounts) {
       const complex = ComplexInterface.at(mock.address)
 
       // No mock set
-      result = await complex.acceptUintReturnString.call(42);
-      assert.equal(result, "")
+      const request = complex.acceptUintReturnString.request([42])
+      response = await utils.getRPCResult(request.params);
+      assert.equal(response.result, "0x")
 
       // Fallback mock set
       await mock.givenAnyReturn(abi.rawEncode(['string'], ["fallback"]).toString())
