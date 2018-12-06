@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity ^0.5.0;
 
 /**
  * @dev Used for unit testing MockContract functionality.
