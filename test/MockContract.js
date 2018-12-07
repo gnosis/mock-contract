@@ -517,14 +517,14 @@ contract('MockContract', function(accounts) {
       const complexTest = await ComplexTest.new(mock.address)
 
       let methodId = await complex.contract.acceptUintReturnUintView.getData(0);
-      await mock.givenMethodReturn(methodId, '0x' + abi.rawEncode(['uint', 'uint'], [7, 13]).toString('hex'))
+      await mock.givenMethodReturn(methodId, abi.rawEncode(['uint'], [7]).toString())
 
       // Call view func directly
       result = await complex.acceptUintReturnUintView.call(0)
       assert.equal(result.toNumber(), 7)
 
       // Call from other contract
-      let res = await complexTest.testViewFunc(0)
+      result = await complexTest.testViewFunc(0)
       assert.equal(result.toNumber(), 7)
     });
   });
