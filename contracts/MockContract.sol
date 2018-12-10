@@ -101,6 +101,7 @@ contract MockContract is MockInterface {
 	string fallbackRevertMessage;
 	uint invocations;
 	uint resetCount;
+    bool tryWriteFlag;
 
 	constructor() public {
 		calldataMocks[MOCKS_LIST_START] = MOCKS_LIST_END;
@@ -326,6 +327,10 @@ contract MockContract is MockInterface {
     	assembly { mstore(add(b, 32), x) }
 	}
 
+    function tryWrite() public {
+        tryWriteFlag = !tryWriteFlag;
+    }
+
 	function() payable external {
 		bytes4 methodId;
 		assembly {
@@ -363,12 +368,15 @@ contract MockContract is MockInterface {
 			result = fallbackExpectation;
 		}
 
-		// Record invocation
-		invocations += 1;
-		methodIdInvocations[keccak256(abi.encodePacked(resetCount, methodId))] += 1;
-		calldataInvocations[keccak256(abi.encodePacked(resetCount, msg.data))] += 1;
-
-		assembly {
+		// Record invocation only if we are not invoked via STATICCALL
+        (bool success, ) = address(this).call(abi.encodeWithSignature("tryWrite()"));
+        if (success) {
+            invocations += 1;
+		    methodIdInvocations[keccak256(abi.encodePacked(resetCount, methodId))] += 1;
+		    calldataInvocations[keccak256(abi.encodePacked(resetCount, msg.data))] += 1;
+        }
+		
+        assembly {
 			return(add(0x20, result), mload(result))
 		}
 	}
