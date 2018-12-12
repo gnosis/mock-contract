@@ -101,7 +101,6 @@ contract MockContract is MockInterface {
 	string fallbackRevertMessage;
 	uint invocations;
 	uint resetCount;
-	bool tryWriteFlag;
 
 	constructor() public {
 		calldataMocks[MOCKS_LIST_START] = MOCKS_LIST_END;
@@ -306,11 +305,11 @@ contract MockContract is MockInterface {
 	}
 
 	function bytesToBytes4(bytes memory b) private pure returns (bytes4) {
-  		bytes4 out;
-  		for (uint i = 0; i < 4; i++) {
+		bytes4 out;
+		for (uint i = 0; i < 4; i++) {
 			out |= bytes4(b[i] & 0xFF) >> (i * 8);
-  		}
-  		return out;
+		}
+		return out;
 	}
 
 	function addressToBytes(address a) private pure returns (bytes memory b){
@@ -327,8 +326,11 @@ contract MockContract is MockInterface {
 		assembly { mstore(add(b, 32), x) }
 	}
 
-	function tryWrite() public {
-		tryWriteFlag = !tryWriteFlag;
+	function updateInvocationCount(bytes4 methodId, bytes memory originalMsgData) public {
+		require(msg.sender == address(this), "Can only be called from the contract itself");
+		invocations += 1;
+		methodIdInvocations[keccak256(abi.encodePacked(resetCount, methodId))] += 1;
+		calldataInvocations[keccak256(abi.encodePacked(resetCount, originalMsgData))] += 1;
 	}
 
 	function() payable external {
@@ -368,13 +370,9 @@ contract MockContract is MockInterface {
 			result = fallbackExpectation;
 		}
 
-		// Record invocation only if we are not invoked via STATICCALL
-		(bool success, ) = address(this).call(abi.encodeWithSignature("tryWrite()"));
-		if (success) {
-			invocations += 1;
-			methodIdInvocations[keccak256(abi.encodePacked(resetCount, methodId))] += 1;
-			calldataInvocations[keccak256(abi.encodePacked(resetCount, msg.data))] += 1;
-		}
+		// Record invocation as separate call so we don't rollback in case we are called with STATICCALL
+		(, bytes memory r) = address(this).call(abi.encodeWithSignature("updateInvocationCount(bytes4,bytes)", methodId, msg.data));
+		assert(r.length == 0);
 		
 		assembly {
 			return(add(0x20, result), mload(result))
