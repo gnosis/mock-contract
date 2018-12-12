@@ -508,4 +508,17 @@ contract('MockContract', function(accounts) {
       assert.equal(count, 0)
     });
   });
+
+  describe("givenMethodReturn for view functions", function() {
+    it("should return the mocked value", async function() {
+      const mock = await MockContract.new();
+      const complex = ComplexInterface.at(mock.address)
+
+      let methodId = await complex.contract.acceptUintReturnUintView.getData(0);
+      await mock.givenMethodReturn(methodId, abi.rawEncode(['uint'], [7]).toString())
+
+      result = await complex.acceptUintReturnUintView.call(0)
+      assert.equal(result.toNumber(), 7)
+    });
+  });
 });
