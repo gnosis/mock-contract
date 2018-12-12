@@ -2,7 +2,6 @@ const utils = require('./utils')
 const abi = require('ethereumjs-abi')
 const MockContract = artifacts.require("./MockContract.sol")
 const ComplexInterface = artifacts.require("./ComplexInterface.sol")
-const ComplexTest = artifacts.require("./ComplexTest")
 
 contract('MockContract', function(accounts) {
 
@@ -514,17 +513,11 @@ contract('MockContract', function(accounts) {
     it("should return the mocked value", async function() {
       const mock = await MockContract.new();
       const complex = ComplexInterface.at(mock.address)
-      const complexTest = await ComplexTest.new(mock.address)
 
       let methodId = await complex.contract.acceptUintReturnUintView.getData(0);
       await mock.givenMethodReturn(methodId, abi.rawEncode(['uint'], [7]).toString())
 
-      // Call view func directly
       result = await complex.acceptUintReturnUintView.call(0)
-      assert.equal(result.toNumber(), 7)
-
-      // Call from other contract
-      result = await complexTest.testViewFunc(0)
       assert.equal(result.toNumber(), 7)
     });
   });

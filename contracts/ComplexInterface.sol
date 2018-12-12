@@ -13,16 +13,3 @@ interface ComplexInterface {
     function acceptUintReturnAddress(uint) external returns (address);
     function acceptUintReturnUintView(uint) external view returns (uint);
 }
-
-contract ComplexTest {
-    ComplexInterface complex;
-
-    constructor(address _complex) public {
-        require(_complex != address(0));
-        complex = ComplexInterface(_complex);
-    }
-
-    function testViewFunc(uint _n) public view returns (uint) {
-        return complex.acceptUintReturnUintView(_n);
-    }
-}
