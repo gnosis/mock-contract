@@ -12,4 +12,5 @@ interface ComplexInterface {
     function acceptUintReturnUint(uint) external returns (uint);
     function acceptUintReturnAddress(uint) external returns (address);
     function acceptUintReturnUintView(uint) external view returns (uint);
+    function acceptAddressReturnUintUintView(address) external view returns (uint, uint);
 }

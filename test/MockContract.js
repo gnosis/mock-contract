@@ -2,6 +2,7 @@ const utils = require('./utils')
 const abi = require('ethereumjs-abi')
 const MockContract = artifacts.require("./MockContract.sol")
 const ComplexInterface = artifacts.require("./ComplexInterface.sol")
+const SimpleContract = artifacts.require("./SimpleContract.sol")
 
 contract('MockContract', function(accounts) {
 
@@ -166,8 +167,44 @@ contract('MockContract', function(accounts) {
 
       result = await complex.acceptUintReturnUint.call(8)
       assert.equal(8, result)
-    })
-  });
+    });
+      
+    it("should allow mocking the same method with different paramters 1", async function() {
+      const mock = await MockContract.new();
+      const complex = ComplexInterface.at(mock.address)
+      const simple = await SimpleContract.new(mock.address);
+
+      encodedA = await complex.contract.acceptUintReturnUintView.getData(0);
+      encodedB = await complex.contract.acceptAddressReturnUintUintView.getData('0x1');
+      encodedC = await complex.contract.acceptAddressReturnUintUintView.getData('0x2');
+
+      await mock.givenCalldataReturn(encodedA, '0x' + abi.rawEncode(['uint'], [0]).toString('hex'))
+      await mock.givenCalldataReturn(encodedB, '0x' + abi.rawEncode(['uint', 'uint'], [1,1]).toString('hex'))
+      await mock.givenCalldataReturn(encodedC, '0x' + abi.rawEncode(['uint', 'uint'], [2,2]).toString('hex'))
+      
+      const result = await simple.simpleMethodThatFails('0x1', '0x2')
+      
+      assert.equal(result, true)
+    });
+      
+    it("should allow mocking the same method with different paramters 2", async function() {
+      const mock = await MockContract.new();
+      const complex = ComplexInterface.at(mock.address)
+      const simple = await SimpleContract.new(mock.address);
+
+      encodedA = await complex.contract.acceptUintReturnUintView.getData(0);
+      encodedB = await complex.contract.acceptAddressReturnUintUintView.getData('0x1');
+      encodedC = await complex.contract.acceptAddressReturnUintUintView.getData('0x2');
+
+      await mock.givenCalldataReturn(encodedA, '0x' + abi.rawEncode(['uint'], [0]).toString('hex'))
+      await mock.givenCalldataReturn(encodedB, '0x' + abi.rawEncode(['uint', 'uint'], [1,1]).toString('hex'))
+      await mock.givenCalldataReturn(encodedC, '0x' + abi.rawEncode(['uint', 'uint'], [2,2]).toString('hex'))
+      
+      const result = await simple.simpleMethodThatPasses('0x1', '0x2')
+      
+      assert.equal(result, true)
+    });
+  })
 
   describe("givenCalldataRevert", function() {
     it("should revert if mocked", async function() {
