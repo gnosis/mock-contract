@@ -169,38 +169,40 @@ contract('MockContract', function(accounts) {
       assert.equal(8, result)
     });
       
-    it("should allow mocking the same method with different paramters 1", async function() {
+    // fails  
+    it("should call method 3 time and return constant", async function() {
       const mock = await MockContract.new();
       const complex = ComplexInterface.at(mock.address)
       const simple = await SimpleContract.new(mock.address);
 
       encodedA = await complex.contract.acceptUintReturnUintView.getData(0);
-      encodedB = await complex.contract.acceptAddressReturnUintUintView.getData('0x1');
-      encodedC = await complex.contract.acceptAddressReturnUintUintView.getData('0x2');
+      encodedB = await complex.contract.acceptUintReturnUintView.getData(1);
+      encodedC = await complex.contract.acceptUintReturnUintView.getData(2);
 
       await mock.givenCalldataReturn(encodedA, '0x' + abi.rawEncode(['uint'], [0]).toString('hex'))
-      await mock.givenCalldataReturn(encodedB, '0x' + abi.rawEncode(['uint', 'uint'], [1,1]).toString('hex'))
-      await mock.givenCalldataReturn(encodedC, '0x' + abi.rawEncode(['uint', 'uint'], [2,2]).toString('hex'))
+      await mock.givenCalldataReturn(encodedB, '0x' + abi.rawEncode(['uint'], [1]).toString('hex'))
+      await mock.givenCalldataReturn(encodedC, '0x' + abi.rawEncode(['uint'], [2]).toString('hex'))
       
-      const result = await simple.simpleMethodThatFails('0x1', '0x2')
+      const result = await simple.callMockedFunction3Times()
       
       assert.equal(result, true)
     });
       
-    it("should allow mocking the same method with different paramters 2", async function() {
+    // passes  
+    it("should call method 2 time and return constant", async function() {
       const mock = await MockContract.new();
       const complex = ComplexInterface.at(mock.address)
       const simple = await SimpleContract.new(mock.address);
 
       encodedA = await complex.contract.acceptUintReturnUintView.getData(0);
-      encodedB = await complex.contract.acceptAddressReturnUintUintView.getData('0x1');
-      encodedC = await complex.contract.acceptAddressReturnUintUintView.getData('0x2');
+      encodedB = await complex.contract.acceptUintReturnUintView.getData(1);
+      encodedC = await complex.contract.acceptUintReturnUintView.getData(2);
 
       await mock.givenCalldataReturn(encodedA, '0x' + abi.rawEncode(['uint'], [0]).toString('hex'))
-      await mock.givenCalldataReturn(encodedB, '0x' + abi.rawEncode(['uint', 'uint'], [1,1]).toString('hex'))
-      await mock.givenCalldataReturn(encodedC, '0x' + abi.rawEncode(['uint', 'uint'], [2,2]).toString('hex'))
+      await mock.givenCalldataReturn(encodedB, '0x' + abi.rawEncode(['uint'], [1]).toString('hex'))
+      await mock.givenCalldataReturn(encodedC, '0x' + abi.rawEncode(['uint'], [2]).toString('hex'))
       
-      const result = await simple.simpleMethodThatPasses('0x1', '0x2')
+      const result = await simple.callMockedFunction2Times()
       
       assert.equal(result, true)
     });
