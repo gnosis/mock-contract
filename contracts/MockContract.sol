@@ -53,7 +53,6 @@ interface MockInterface {
 	 * @dev Returns the number of times anything has been called on this mock since last reset
 	 */
 	function invocationCount() external returns (uint);
-	function disableInvocationCounting() external;
 
 	/**
 	 * @dev Returns the number of times the given method has been called on this mock since last reset
@@ -101,13 +100,11 @@ contract MockContract is MockInterface {
 	bytes fallbackExpectation;
 	string fallbackRevertMessage;
 	uint invocations;
-	bool invocationCountingEnabled;
 	uint resetCount;
 
 	constructor() public {
 		calldataMocks[MOCKS_LIST_START] = MOCKS_LIST_END;
 		methodIdMocks[SENTINEL_ANY_MOCKS] = SENTINEL_ANY_MOCKS;
-		invocationCountingEnabled = true;
 	}
 
 	function trackCalldataMock(bytes memory call) private {
@@ -247,10 +244,6 @@ contract MockContract is MockInterface {
 	function invocationCount() external returns (uint) {
 		return invocations;
 	}
-	
-	function disableInvocationCounting() external {
-		invocationCountingEnabled = false;
-	}
 
 	function invocationCountForMethod(bytes calldata call) external returns (uint) {
 		bytes4 method = bytesToBytes4(call);
@@ -377,11 +370,9 @@ contract MockContract is MockInterface {
 			result = fallbackExpectation;
 		}
 
-		if (invocationCountingEnabled) {
-			// Record invocation as separate call so we don't rollback in case we are called with STATICCALL
-			(, bytes memory r) = address(this).call(abi.encodeWithSignature("updateInvocationCount(bytes4,bytes)", methodId, msg.data));
-			assert(r.length == 0);
-		}
+		// Record invocation as separate call so we don't rollback in case we are called with STATICCALL
+		(, bytes memory r) = address(this).call(abi.encodeWithSignature("updateInvocationCount(bytes4,bytes)", methodId, msg.data));
+		assert(r.length == 0);
 		
 		assembly {
 			return(add(0x20, result), mload(result))
