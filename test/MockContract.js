@@ -169,8 +169,7 @@ contract('MockContract', function(accounts) {
       assert.equal(8, result)
     });
       
-    // fails  
-    it("should call method 3 time and return constant", async function() {
+    it("should call method 3 times and return constant in 1 transaction", async function() {
       const mock = await MockContract.new();
       const complex = ComplexInterface.at(mock.address)
       const simple = await SimpleContract.new(mock.address);
@@ -186,26 +185,7 @@ contract('MockContract', function(accounts) {
       const result = await simple.callMockedFunction3Times()
       
       assert.equal(result, true)
-    });
-      
-    // passes  
-    it("should call method 2 time and return constant", async function() {
-      const mock = await MockContract.new();
-      const complex = ComplexInterface.at(mock.address)
-      const simple = await SimpleContract.new(mock.address);
-
-      encodedA = await complex.contract.acceptUintReturnUintView.getData(0);
-      encodedB = await complex.contract.acceptUintReturnUintView.getData(1);
-      encodedC = await complex.contract.acceptUintReturnUintView.getData(2);
-
-      await mock.givenCalldataReturn(encodedA, '0x' + abi.rawEncode(['uint'], [0]).toString('hex'))
-      await mock.givenCalldataReturn(encodedB, '0x' + abi.rawEncode(['uint'], [1]).toString('hex'))
-      await mock.givenCalldataReturn(encodedC, '0x' + abi.rawEncode(['uint'], [2]).toString('hex'))
-      
-      const result = await simple.callMockedFunction2Times()
-      
-      assert.equal(result, true)
-    });
+    });      
   })
 
   describe("givenCalldataRevert", function() {
