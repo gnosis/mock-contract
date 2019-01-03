@@ -2,7 +2,7 @@ pragma solidity ^0.5.0;
 
 import './ComplexInterface.sol';
 
-contract SimpleContract {
+contract ExampleContractUnderTest {
     ComplexInterface complexInterface;
   
     constructor(address _complexInterface) public {
@@ -10,9 +10,9 @@ contract SimpleContract {
     }
    
     function callMockedFunction3Times() public view returns (bool) {
-        complexInterface.acceptUintReturnUintView(0);
         complexInterface.acceptUintReturnUintView(1);
-        complexInterface.acceptUintReturnUintView(2);
+        complexInterface.acceptUintReturnUintView(1);
+        complexInterface.acceptUintReturnUintView(1);
         return true;
     }
 }

@@ -2,7 +2,7 @@ const utils = require('./utils')
 const abi = require('ethereumjs-abi')
 const MockContract = artifacts.require("./MockContract.sol")
 const ComplexInterface = artifacts.require("./ComplexInterface.sol")
-const SimpleContract = artifacts.require("./SimpleContract.sol")
+const ExampleContractUnderTest = artifacts.require("./ExampleContractUnderTest.sol")
 
 contract('MockContract', function(accounts) {
 
@@ -172,18 +172,10 @@ contract('MockContract', function(accounts) {
     it("should call method 3 times and return constant in 1 transaction", async function() {
       const mock = await MockContract.new();
       const complex = ComplexInterface.at(mock.address)
-      const simple = await SimpleContract.new(mock.address);
+      const exampleContract = await ExampleContractUnderTest.new(mock.address);
 
-      encodedA = await complex.contract.acceptUintReturnUintView.getData(0);
-      encodedB = await complex.contract.acceptUintReturnUintView.getData(1);
-      encodedC = await complex.contract.acceptUintReturnUintView.getData(2);
-
-      await mock.givenCalldataReturn(encodedA, '0x' + abi.rawEncode(['uint'], [0]).toString('hex'))
-      await mock.givenCalldataReturn(encodedB, '0x' + abi.rawEncode(['uint'], [1]).toString('hex'))
-      await mock.givenCalldataReturn(encodedC, '0x' + abi.rawEncode(['uint'], [2]).toString('hex'))
-      
-      const result = await simple.callMockedFunction3Times()
-      
+      mock.givenAnyReturnUint(1)
+      const result = await exampleContract.callMockedFunction3Times()
       assert.equal(result, true)
     });      
   })
