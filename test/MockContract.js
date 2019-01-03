@@ -2,6 +2,7 @@ const utils = require('./utils')
 const abi = require('ethereumjs-abi')
 const MockContract = artifacts.require("./MockContract.sol")
 const ComplexInterface = artifacts.require("./ComplexInterface.sol")
+const ExampleContractUnderTest = artifacts.require("./ExampleContractUnderTest.sol")
 
 contract('MockContract', function(accounts) {
 
@@ -166,8 +167,18 @@ contract('MockContract', function(accounts) {
 
       result = await complex.acceptUintReturnUint.call(8)
       assert.equal(8, result)
-    })
-  });
+    });
+      
+    it("should call method 3 times and return constant in 1 transaction", async function() {
+      const mock = await MockContract.new();
+      const complex = ComplexInterface.at(mock.address)
+      const exampleContract = await ExampleContractUnderTest.new(mock.address);
+
+      mock.givenAnyReturnUint(1)
+      const result = await exampleContract.callMockedFunction3Times()
+      assert.equal(result, true)
+    });      
+  })
 
   describe("givenCalldataRevert", function() {
     it("should revert if mocked", async function() {
