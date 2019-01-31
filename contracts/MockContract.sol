@@ -141,7 +141,7 @@ contract MockContract is MockInterface {
 	}
 
 	function givenAnyReturnAddress(address response) external {
-		_givenAnyReturn(addressToBytes(response));
+		_givenAnyReturn(uintToBytes(uint(response)));
 	}
 
 	function givenAnyRevert() external {
@@ -178,7 +178,7 @@ contract MockContract is MockInterface {
 	}
 
 	function givenCalldataReturnAddress(bytes calldata call, address response) external {
-		_givenCalldataReturn(call, addressToBytes(response));
+		_givenCalldataReturn(call, uintToBytes(uint(response)));
 	}
 
 	function _givenMethodReturn(bytes memory call, bytes memory response) private {
@@ -202,7 +202,7 @@ contract MockContract is MockInterface {
 	}
 
 	function givenMethodReturnAddress(bytes calldata call, address response) external {
-		_givenMethodReturn(call, addressToBytes(response));
+		_givenMethodReturn(call, uintToBytes(uint(response)));
 	}
 
 	function givenCalldataRevert(bytes calldata call) external {
@@ -310,15 +310,6 @@ contract MockContract is MockInterface {
 			out |= bytes4(b[i] & 0xFF) >> (i * 8);
 		}
 		return out;
-	}
-
-	function addressToBytes(address a) private pure returns (bytes memory b){
-		assembly {
-			let m := mload(0x40)
-			mstore(add(m, 20), xor(0x140000000000000000000000000000000000000000, a))
-			mstore(0x40, add(m, 52))
-			b := m
-		}
 	}
 
 	function uintToBytes(uint256 x) private pure returns (bytes memory b) {
