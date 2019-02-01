@@ -169,9 +169,8 @@ contract('MockContract', function(accounts) {
       assert.equal(8, result)
     });
       
-    it("should call method 3 times and return constant in 1 transaction", async function() {
+    it("should allow contract under test to call mocked method 3 times in 1 transaction", async function() {
       const mock = await MockContract.new();
-      const complex = ComplexInterface.at(mock.address)
       const exampleContract = await ExampleContractUnderTest.new(mock.address);
 
       mock.givenAnyReturnUint(1)
@@ -295,6 +294,17 @@ contract('MockContract', function(accounts) {
       await mock.givenMethodReturnAddress(methodId, accounts[0])
       result = await complex.contract.acceptUintReturnAddress.call(0);
       assert.equal(result, accounts[0])
+    });
+
+    it("should mock method returning an address which can be used in `contract under test`", async function() {
+      const mock = await MockContract.new();
+      const complex = ComplexInterface.at(mock.address)
+      const exampleContract = await ExampleContractUnderTest.new(mock.address);
+      
+      const methodId = await complex.contract.acceptUintReturnAddress.getData(0);
+      await mock.givenMethodReturnAddress(methodId, accounts[0]);
+      
+      await exampleContract.callMethodThatReturnsAddress();
     });
   });
 
