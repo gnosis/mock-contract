@@ -113,8 +113,8 @@ it('should fail if we fail to refund', async () => {
   const auction = await SimpleAuction.new(mock.address)
   const token = await Token.new();
 
-  const transferFrom = token.contract.method.transferFrom.getData(0, 0, 0) // arguments don't matter
-  const transfer = token.contract.method.transfer.getData(0,0) // arguments don't matter
+  const transferFrom = token.contract.methods.transferFrom.getData(0, 0, 0) // arguments don't matter
+  const transfer = token.contract.methods.transfer.getData(0,0) // arguments don't matter
 
   await mock.givenMethodReturnBool(transferFrom, true)
   await mock.givenMethodReturnBool(transfer, false)
@@ -194,7 +194,7 @@ it('only does the second transfer if the first transfer succeed', async () => {
   await mock.givenAnyReturnBool(false)
   await auction.bid()
 
-  const transfer = token.contract.meethods.transfer.getData(0,0)
+  const transfer = token.contract.methods.transfer.getData(0,0)
   
   const invocationCount = await mock.invocationCountForMethod.call(transfer)
   assert.equal(0, invocationCount)
