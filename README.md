@@ -113,8 +113,8 @@ it('should fail if we fail to refund', async () => {
   const auction = await SimpleAuction.new(mock.address)
   const token = await Token.new();
 
-  const transferFrom = token.contract.transferFrom.getData(0, 0, 0) // arguments don't matter
-  const transfer = token.contract.transfer.getData(0,0) // arguments don't matter
+  const transferFrom = token.contract.method.transferFrom.getData(0, 0, 0) // arguments don't matter
+  const transfer = token.contract.method.transfer.getData(0,0) // arguments don't matter
 
   await mock.givenMethodReturnBool(transferFrom, true)
   await mock.givenMethodReturnBool(transfer, false)
@@ -152,8 +152,8 @@ We can also specify different behaviors for when the same method is called with 
 ```js
 it('Keeps the old bidder if the new bidder fails to transfer', async () => {
   ...
-  const transferFromA = token.contract.transferFrom.getData(accounts[0], auction.address, 1)
-  const transferFromB = token.contract.transferFrom.getData(accounts[1], auction.address, 2)
+  const transferFromA = token.contract.methods.transferFrom.getData(accounts[0], auction.address, 1)
+  const transferFromB = token.contract.methods.transferFrom.getData(accounts[1], auction.address, 2)
 
   await mock.givenCalldataReturnBool(transferFromA, true)
   await mock.givenCalldataReturnBool(transferFromB, false)
@@ -194,7 +194,7 @@ it('only does the second transfer if the first transfer succeed', async () => {
   await mock.givenAnyReturnBool(false)
   await auction.bid()
 
-  const transfer = token.contract.transfer.getData(0,0)
+  const transfer = token.contract.meethods.transfer.getData(0,0)
   
   const invocationCount = await mock.invocationCountForMethod.call(transfer)
   assert.equal(0, invocationCount)
@@ -225,8 +225,9 @@ If the methods for returning the most commonly used types are not enough, we can
 
 ```js
 const abi = require('ethereumjs-abi')
-await mock.givenAnyReturn(abi.rawEncode(['string'], ['Hello World!']).toString());
+await mock.givenAnyReturn(abi.rawEncode(['string'], ['Hello World!']));
 ```
+
 
 ---------------------------------------
 
