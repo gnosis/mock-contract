@@ -113,8 +113,8 @@ it('should fail if we fail to refund', async () => {
   const auction = await SimpleAuction.new(mock.address)
   const token = await Token.new();
 
-  const transferFrom = token.contract.methods.transferFrom(0, 0, 0).encodeAbi() // arguments don't matter
-  const transfer = token.contract.methods.transfer(0,0).encodeAbi() // arguments don't matter
+  const transferFrom = token.contract.methods.transferFrom(0, 0, 0).encodeABI() // arguments don't matter
+  const transfer = token.contract.methods.transfer(0,0).encodeABI() // arguments don't matter
 
   await mock.givenMethodReturnBool(transferFrom, true)
   await mock.givenMethodReturnBool(transfer, false)
@@ -126,11 +126,11 @@ it('should fail if we fail to refund', async () => {
 })
 ```
 
-Different methods have different ABI encodings. `mock.givenMethodReturnBool(bytes, boolean)` takes the ABI encoded methodId as a first parameter and will only replace behavior for this method. There are two ways to construct the methodId. We recommend using the `encodeAbi` call on the original contract's ABI:
+Different methods have different ABI encodings. `mock.givenMethodReturnBool(bytes, boolean)` takes the ABI encoded methodId as a first parameter and will only replace behavior for this method. There are two ways to construct the methodId. We recommend using the `encodeABI` call on the original contract's ABI:
 
 ```js
 // Arguments do not matter, mock will only extract methodId
-const transferFrom = token.contract.transferFrom(0, 0, 0).encodeAbi()
+const transferFrom = token.contract.transferFrom(0, 0, 0).encodeABI()
 ```
 
 We could also create it manually using e.g.:
@@ -152,8 +152,8 @@ We can also specify different behaviors for when the same method is called with 
 ```js
 it('Keeps the old bidder if the new bidder fails to transfer', async () => {
   ...
-  const transferFromA = token.contract.methods.transferFrom(accounts[0], auction.address, 1).encodeAbi()
-  const transferFromB = token.contract.methods.transferFrom(accounts[1], auction.address, 2).encodeAbi()
+  const transferFromA = token.contract.methods.transferFrom(accounts[0], auction.address, 1).encodeABI()
+  const transferFromB = token.contract.methods.transferFrom(accounts[1], auction.address, 2).encodeABI()
 
   await mock.givenCalldataReturnBool(transferFromA, true)
   await mock.givenCalldataReturnBool(transferFromB, false)
@@ -165,7 +165,7 @@ it('Keeps the old bidder if the new bidder fails to transfer', async () => {
 })
 ```
 
-This time we need to provide the full `calldata`. We can easily use the original contract's ABI `encodeAbi`call to generate it. Again, convenience functions for other return types exist (e.g. `givenMethoReturnUint`). 
+This time we need to provide the full `calldata`. We can easily use the original contract's ABI `encodeABI`call to generate it. Again, convenience functions for other return types exist (e.g. `givenMethoReturnUint`). 
 
 Mocked calls with exact calldata will takes priority over *method* mocks and *any* mocks.
 
@@ -194,7 +194,7 @@ it('only does the second transfer if the first transfer succeed', async () => {
   await mock.givenAnyReturnBool(false)
   await auction.bid()
 
-  const transfer = token.contract.methods.transfer(0,0).encodeAbi()
+  const transfer = token.contract.methods.transfer(0,0).encodeABI()
   
   const invocationCount = await mock.invocationCountForMethod.call(transfer)
   assert.equal(0, invocationCount)
