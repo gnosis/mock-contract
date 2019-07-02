@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/gnosis/mock-contract.svg?branch=master)](https://travis-ci.org/gnosis/mock-contract)
+
 # MockContract
 
 Simple Solidity contract to mock dependencies in truffle tests. It enables you to
