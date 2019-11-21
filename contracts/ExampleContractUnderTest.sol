@@ -20,4 +20,8 @@ contract ExampleContractUnderTest {
         address foo = complexInterface.acceptUintReturnAddress(1);
         return foo;
     }
+
+    function callMethodThatReturnsBool() public returns (bool) {
+        return complexInterface.acceptUintReturnBool(1);
+    }
 }
