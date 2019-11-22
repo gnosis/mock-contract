@@ -1,6 +1,6 @@
 {
   "name": "@gnosis.pm/mock-contract",
-  "version": "3.0.7",
+  "version": "3.0.8",
   "description": "Simple Solidity contract to mock dependent contracts in truffle tests.",
   "main": "truffle-config.js",
   "files": [
