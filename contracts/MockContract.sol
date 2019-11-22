@@ -82,6 +82,7 @@ contract MockContract is MockInterface {
 	bytes public constant MOCKS_LIST_END = "0xff";
 	bytes32 public constant MOCKS_LIST_END_HASH = keccak256(MOCKS_LIST_END);
 	bytes4 public constant SENTINEL_ANY_MOCKS = hex"01";
+    bytes public constant DEFAULT_FALLBACK_VALUE = abi.encode(false);
 
 	// A linked list allows easy iteration and inclusion checks
 	mapping(bytes32 => bytes) calldataMocks;
@@ -97,7 +98,7 @@ contract MockContract is MockInterface {
 	mapping(bytes32 => uint) methodIdInvocations;
 
 	MockType fallbackMockType;
-	bytes fallbackExpectation = abi.encode(false);
+	bytes fallbackExpectation = DEFAULT_FALLBACK_VALUE;
 	string fallbackRevertMessage;
 	uint invocations;
 	uint resetCount;
@@ -288,7 +289,7 @@ contract MockContract is MockInterface {
 		// Clear list
 		methodIdMocks[SENTINEL_ANY_MOCKS] = SENTINEL_ANY_MOCKS;
 
-		fallbackExpectation = abi.encode(false);
+		fallbackExpectation = DEFAULT_FALLBACK_VALUE;
 		fallbackMockType = MockType.Return;
 		invocations = 0;
 		resetCount += 1;
