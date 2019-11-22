@@ -82,7 +82,7 @@ contract MockContract is MockInterface {
 	bytes public constant MOCKS_LIST_END = "0xff";
 	bytes32 public constant MOCKS_LIST_END_HASH = keccak256(MOCKS_LIST_END);
 	bytes4 public constant SENTINEL_ANY_MOCKS = hex"01";
-    bytes public constant DEFAULT_FALLBACK_VALUE = abi.encode(false);
+	bytes public constant DEFAULT_FALLBACK_VALUE = abi.encode(false);
 
 	// A linked list allows easy iteration and inclusion checks
 	mapping(bytes32 => bytes) calldataMocks;
