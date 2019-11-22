@@ -14,6 +14,14 @@ contract('MockContract', function(accounts) {
       result = await complex.acceptAdressUintReturnBool.call("0x0", 10);
       assert.equal(result, false)
     });
+
+    it("should return null if not mocked when called by contract under test", async function() {
+      const mock = await MockContract.new()
+      const exampleContract = await ExampleContractUnderTest.new(mock.address);
+
+      result = await exampleContract.callMethodThatReturnsBool.call();
+      assert.equal(result, false)
+    });
   });
 
   describe("givenAnyReturn", function() {
@@ -412,9 +420,8 @@ contract('MockContract', function(accounts) {
       // Check that we can reset revert
       await mock.reset()
       // Transactions should be successful
-      const request = complex.acceptUintReturnString.request([42])
-      response = await utils.getRPCResult(request.params);
-      assert.equal(response.result, "0x")
+      const response = await complex.acceptUintReturnString.call(42)
+      assert.equal(response, "")
     }
 
     it("all specific mocks should be prioritized over return any mock", async function() {
@@ -422,14 +429,12 @@ contract('MockContract', function(accounts) {
       const complex = ComplexInterface.at(mock.address)
 
       // No mock set
-      const request = complex.acceptUintReturnString.request([42])
-      response = await utils.getRPCResult(request.params);
-      assert.equal(response.result, "0x")
+      const response = await complex.acceptUintReturnString.call(42)
+      assert.equal(response, "")
 
       // Fallback mock set
       await mock.givenAnyReturn(abi.rawEncode(['string'], ["fallback"]).toString())
-      response = await utils.getRPCResult(request.params);
-      result = await complex.acceptUintReturnString.call(42);
+      let result = await complex.acceptUintReturnString.call(42)
       assert.equal(result, "fallback")
 
       // MethodId mock set
@@ -445,9 +450,8 @@ contract('MockContract', function(accounts) {
       const complex = ComplexInterface.at(mock.address)
 
       // No mock set
-      const request = complex.acceptUintReturnString.request([42])
-      response = await utils.getRPCResult(request.params);
-      assert.equal(response.result, "0x")
+      const response = await complex.acceptUintReturnString.call(42)
+      assert.equal(response, "")
 
       const encoded = await complex.contract.acceptUintReturnString.getData(42)
 
@@ -471,9 +475,8 @@ contract('MockContract', function(accounts) {
       const complex = ComplexInterface.at(mock.address)
 
       // No mock set
-      const request = complex.acceptUintReturnString.request([42])
-      response = await utils.getRPCResult(request.params);
-      assert.equal(response.result, "0x")
+      const response = await complex.acceptUintReturnString.call(42)
+      assert.equal(response, "")
 
       // Fallback mock set
       await mock.givenAnyReturn(abi.rawEncode(['string'], ["fallback"]).toString())
