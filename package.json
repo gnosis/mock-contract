@@ -25,7 +25,8 @@
   "license": "ISC",
   "devDependencies": {
     "run-with-testrpc": "^0.3.0",
-    "truffle": "4.1.14"
+    "solc": "^0.6.11",
+    "truffle": "^5.1"
   },
   "dependencies": {
     "ethereumjs-abi": "^0.6.5"
