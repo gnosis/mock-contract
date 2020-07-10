@@ -136,7 +136,7 @@ contract('MockContract', function(accounts) {
       result = await complex.acceptAdressUintReturnBool.call("0x0000000000000000000000000000000000000000", 10)
       assert.equal(result, true)
       // Check that other calls return default
-      result = await complex.acceptAdressUintReturnBool.call("0x1", 10);
+      result = await complex.acceptAdressUintReturnBool.call("0x0000000000000000000000000000000000000001", 10);
       assert.equal(result, false)
 
       // Check that we can reset
@@ -199,7 +199,7 @@ contract('MockContract', function(accounts) {
       error = await utils.getErrorMessage(complex.address, 0, encoded)
       assert.equal(error, "")
       // Check that other calls return default
-      result = await complex.acceptAdressUintReturnBool.call("0x1", 10);
+      result = await complex.acceptAdressUintReturnBool.call("0x0000000000000000000000000000000000000001", 10);
       assert.equal(result, false)
 
       await utils.assertRevert(complex.acceptAdressUintReturnBool("0x0000000000000000000000000000000000000000", 10))
@@ -226,7 +226,7 @@ contract('MockContract', function(accounts) {
         await utils.assertRevert(complex.acceptAdressUintReturnBool("0x0000000000000000000000000000000000000000", 10))
 
         // Check that other calls return default
-        result = await complex.acceptAdressUintReturnBool.call("0x1", 10);
+        result = await complex.acceptAdressUintReturnBool.call("0x0000000000000000000000000000000000000001", 10);
         assert.equal(result, false)
 
         // Check that we can reset revert
@@ -251,7 +251,7 @@ contract('MockContract', function(accounts) {
       await utils.assertOutOfGas(complex.acceptAdressUintReturnBool("0x0000000000000000000000000000000000000000", 10))
 
       // Check that other calls return default
-      result = await complex.acceptAdressUintReturnBool.call("0x1", 10);
+      result = await complex.acceptAdressUintReturnBool.call("0x0000000000000000000000000000000000000001", 10);
       assert.equal(result, false)
 
       // Check that we can reset revert
@@ -277,15 +277,15 @@ contract('MockContract', function(accounts) {
       result = await complex.acceptAdressUintReturnBool.call("0x0000000000000000000000000000000000000000", 10)
       assert.equal(result, true)
 
-      complex.acceptAdressUintReturnBool("0x1", 12)
-      result = await complex.acceptAdressUintReturnBool.call("0x1", 12)
+      complex.acceptAdressUintReturnBool("0x0000000000000000000000000000000000000001", 12)
+      result = await complex.acceptAdressUintReturnBool.call("0x0000000000000000000000000000000000000001", 12)
       assert.equal(result, true)
 
       // Check that we can reset mock
       await mock.reset()
       result = await complex.acceptAdressUintReturnBool.call("0x0000000000000000000000000000000000000000", 10)
       assert.equal(result, false)
-      result = await complex.acceptAdressUintReturnBool.call("0x1", 12)
+      result = await complex.acceptAdressUintReturnBool.call("0x0000000000000000000000000000000000000001", 12)
       assert.equal(result, false)
 
       // Check convenience methods
@@ -328,18 +328,18 @@ contract('MockContract', function(accounts) {
       var encoded = await complex.contract.methods.acceptAdressUintReturnBool("0x0000000000000000000000000000000000000000", 10).encodeABI();
       error = await utils.getErrorMessage(complex.address, 0, encoded)
       assert.equal(error, "")
-      encoded = await complex.contract.methods.acceptAdressUintReturnBool("0x1", 12).encodeABI();
+      encoded = await complex.contract.methods.acceptAdressUintReturnBool("0x0000000000000000000000000000000000000001", 12).encodeABI();
       error = await utils.getErrorMessage(complex.address, 0, encoded)
       assert.equal(error, "")
 
       await utils.assertRevert(complex.acceptAdressUintReturnBool("0x0000000000000000000000000000000000000000", 10))
-      await utils.assertRevert(complex.acceptAdressUintReturnBool("0x1", 12))
+      await utils.assertRevert(complex.acceptAdressUintReturnBool("0x0000000000000000000000000000000000000001", 12))
 
       // Check that we can reset revert
       await mock.reset()
       // Transactions should be successful
       await complex.acceptAdressUintReturnBool("0x0000000000000000000000000000000000000000", 10)
-      await complex.acceptAdressUintReturnBool("0x1", 12)
+      await complex.acceptAdressUintReturnBool("0x0000000000000000000000000000000000000001", 12)
     });
   });
 
@@ -355,18 +355,18 @@ contract('MockContract', function(accounts) {
       var encoded = await complex.contract.methods.acceptAdressUintReturnBool("0x0000000000000000000000000000000000000000", 10).encodeABI();
       error = await utils.getErrorMessage(complex.address, 0, encoded)
       assert.equal(error, "This is Sparta!!!")
-      encoded = await complex.contract.methods.acceptAdressUintReturnBool("0x1", 12).encodeABI();
+      encoded = await complex.contract.methods.acceptAdressUintReturnBool("0x0000000000000000000000000000000000000001", 12).encodeABI();
       error = await utils.getErrorMessage(complex.address, 0, encoded)
       assert.equal(error, "This is Sparta!!!")
 
       await utils.assertRevert(complex.acceptAdressUintReturnBool("0x0000000000000000000000000000000000000000", 10))
-      await utils.assertRevert(complex.acceptAdressUintReturnBool("0x1", 12))
+      await utils.assertRevert(complex.acceptAdressUintReturnBool("0x0000000000000000000000000000000000000001", 12))
 
       // Check that we can reset revert
       await mock.reset()
       // Transactions should be successful
       await complex.acceptAdressUintReturnBool("0x0000000000000000000000000000000000000000", 10)
-      await complex.acceptAdressUintReturnBool("0x1", 12)
+      await complex.acceptAdressUintReturnBool("0x0000000000000000000000000000000000000001", 12)
     });
   });
 
@@ -382,18 +382,18 @@ contract('MockContract', function(accounts) {
       var encoded = await complex.contract.methods.acceptAdressUintReturnBool("0x0000000000000000000000000000000000000000", 10).encodeABI();
       error = await utils.getErrorMessage(complex.address, 0, encoded)
       assert.equal(error, "")
-      encoded = await complex.contract.methods.acceptAdressUintReturnBool("0x1", 12).encodeABI();
+      encoded = await complex.contract.methods.acceptAdressUintReturnBool("0x0000000000000000000000000000000000000001", 12).encodeABI();
       error = await utils.getErrorMessage(complex.address, 0, encoded)
       assert.equal(error, "")
 
       await utils.assertOutOfGas(complex.acceptAdressUintReturnBool("0x0000000000000000000000000000000000000000", 10))
-      await utils.assertOutOfGas(complex.acceptAdressUintReturnBool("0x1", 12))
+      await utils.assertOutOfGas(complex.acceptAdressUintReturnBool("0x0000000000000000000000000000000000000001", 12))
 
       // Check that we can reset revert
       await mock.reset()
       // Transactions should be successful
       await complex.acceptAdressUintReturnBool("0x0000000000000000000000000000000000000000", 10)
-      await complex.acceptAdressUintReturnBool("0x1", 12)
+      await complex.acceptAdressUintReturnBool("0x0000000000000000000000000000000000000001", 12)
     });
   });
 
@@ -401,7 +401,7 @@ contract('MockContract', function(accounts) {
 
     const methodId = "0x" + abi.methodID("acceptUintReturnString", ["uint"]).toString("hex")
     const testSpecificMocks = async function (mock, complex) {
-      const encoded = await complex.contract.acceptUintReturnString.getData(42)
+      const encoded = await complex.contract.methods.acceptUintReturnString(42).encodeABI()
       await mock.givenCalldataReturn(encoded, abi.rawEncode(['string'], ["return specific"]).toString());
       result = await complex.acceptUintReturnString.call(42);
       // Specific mock should be prioritized over any mock
