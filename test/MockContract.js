@@ -402,7 +402,7 @@ contract('MockContract', function(accounts) {
     const methodId = "0x" + abi.methodID("acceptUintReturnString", ["uint"]).toString("hex")
     const testSpecificMocks = async function (mock, complex) {
       const encoded = await complex.contract.methods.acceptUintReturnString(42).encodeABI()
-      await mock.givenCalldataReturn("return specific");
+      await mock.givenCalldataReturn(encoded, "return specific");
       result = await complex.acceptUintReturnString.call(42);
       // Specific mock should be prioritized over any mock
       assert.equal(result, "return specific")
