@@ -25,8 +25,7 @@
   "license": "ISC",
   "devDependencies": {
     "run-with-testrpc": "^0.3.0",
-    "solc": "0.5.0",
-    "truffle": "5.0.34"
+    "truffle": "^5.1"
   },
   "dependencies": {
   }
