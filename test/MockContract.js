@@ -1,5 +1,4 @@
 const utils = require('./utils')
-const abi = require('ethereumjs-abi')
 const MockContract = artifacts.require("./MockContract.sol")
 const ComplexInterface = artifacts.require("./ComplexInterface.sol")
 const ExampleContractUnderTest = artifacts.require("./ExampleContractUnderTest.sol")
@@ -29,7 +28,7 @@ contract('MockContract', function(accounts) {
       const mock = await MockContract.new();
       const complex = await ComplexInterface.at(mock.address)
 
-      await mock.givenAnyReturn("true")
+      await mock.givenAnyReturn(web3.eth.abi.encodeParameter("bool", true))
 
       result = await complex.acceptAdressUintReturnBool.call("0x0000000000000000000000000000000000000000", 10)
       assert.equal(result, true)
@@ -49,11 +48,11 @@ contract('MockContract', function(accounts) {
       assert.equal(result, true)
 
       await mock.givenAnyReturnUint(42)
-      result = await complex.contract.acceptUintReturnUint.call(7);
+      result = await complex.acceptUintReturnUint.call(7);
       assert.equal(result, 42)
 
       await mock.givenAnyReturnAddress(accounts[0])
-      result = await complex.contract.acceptUintReturnAddress.call(7);
+      result = await complex.acceptUintReturnAddress.call(7);
       assert.equal(result, accounts[0])
     });
   });
@@ -131,7 +130,7 @@ contract('MockContract', function(accounts) {
       const complex = await ComplexInterface.at(mock.address)
 
       let encoded = await complex.contract.methods.acceptAdressUintReturnBool("0x0000000000000000000000000000000000000000", 10).encodeABI()
-      await mock.givenCalldataReturn(encoded, "true")
+      await mock.givenCalldataReturn(encoded, web3.eth.abi.encodeParameter("bool", true))
 
       result = await complex.acceptAdressUintReturnBool.call("0x0000000000000000000000000000000000000000", 10)
       assert.equal(result, true)
@@ -149,14 +148,14 @@ contract('MockContract', function(accounts) {
       result = await complex.acceptAdressUintReturnBool.call("0x0000000000000000000000000000000000000000", 10)
       assert.equal(result, true)
 
-      encoded = await complex.contract.acceptUintReturnUint.getData(7);
+      encoded = await complex.contract.methods.acceptUintReturnUint(7).encodeABI();
       await mock.givenCalldataReturnUint(encoded, 42)
-      result = await complex.contract.acceptUintReturnUint.call(7);
+      result = await complex.acceptUintReturnUint.call(7);
       assert.equal(result, 42)
 
-      encoded = await complex.contract.acceptUintReturnAddress.getData(7);
+      encoded = await complex.contract.methods.acceptUintReturnAddress(7).encodeABI();
       await mock.givenCalldataReturnAddress(encoded, accounts[0])
-      result = await complex.contract.acceptUintReturnAddress.call(7);
+      result = await complex.acceptUintReturnAddress.call(7);
       assert.equal(result, accounts[0])
     });
 
@@ -270,7 +269,7 @@ contract('MockContract', function(accounts) {
       const complex = await ComplexInterface.at(mock.address)
 
       let methodId = await complex.contract.methods.acceptAdressUintReturnBool("0x0000000000000000000000000000000000000000",0).encodeABI();
-      await mock.givenMethodReturn(methodId, "true")
+      await mock.givenMethodReturn(methodId, web3.eth.abi.encodeParameter("bool", true))
 
       // Check transactions and calls
       complex.acceptAdressUintReturnBool("0x0000000000000000000000000000000000000000", 10)
@@ -293,14 +292,14 @@ contract('MockContract', function(accounts) {
       result = await complex.acceptAdressUintReturnBool.call("0x0000000000000000000000000000000000000000", 10)
       assert.equal(result, true)
 
-      methodId = await complex.contract.acceptUintReturnUint.getData(0);
+      methodId = await complex.contract.methods.acceptUintReturnUint(0).encodeABI();
       await mock.givenMethodReturnUint(methodId, 42)
-      result = await complex.contract.acceptUintReturnUint.call(0);
+      result = await complex.acceptUintReturnUint.call(0);
       assert.equal(result, 42)
 
-      methodId = await complex.contract.acceptUintReturnAddress.getData(0);
+      methodId = await complex.contract.methods.acceptUintReturnAddress(0).encodeABI();
       await mock.givenMethodReturnAddress(methodId, accounts[0])
-      result = await complex.contract.acceptUintReturnAddress.call(0);
+      result = await complex.acceptUintReturnAddress.call(0);
       assert.equal(result, accounts[0])
     });
 
@@ -399,10 +398,10 @@ contract('MockContract', function(accounts) {
 
   describe("test mock priority", function() {
 
-    const methodId = "0x" + abi.methodID("acceptUintReturnString", ["uint"]).toString("hex")
+    const methodId = web3.eth.abi.encodeFunctionSignature("acceptUintReturnString(uint256)");
     const testSpecificMocks = async function (mock, complex) {
       const encoded = await complex.contract.methods.acceptUintReturnString(42).encodeABI()
-      await mock.givenCalldataReturn(encoded, "return specific");
+      await mock.givenCalldataReturn(encoded, web3.eth.abi.encodeParameter("string","return specific"));
       result = await complex.acceptUintReturnString.call(42);
       // Specific mock should be prioritized over any mock
       assert.equal(result, "return specific")
@@ -433,12 +432,12 @@ contract('MockContract', function(accounts) {
       assert.equal(response, "")
 
       // Fallback mock set
-      await mock.givenAnyReturn("fallback")
+      await mock.givenAnyReturn(web3.eth.abi.encodeParameter("string", "fallback"))
       let result = await complex.acceptUintReturnString.call(42)
       assert.equal(result, "fallback")
 
       // MethodId mock set
-      await mock.givenMethodReturn(methodId, abi.rawEncode(['string'], ["methodId"]).toString());
+      await mock.givenMethodReturn(methodId, web3.eth.abi.encodeParameter("string", "methodId"));
       result = await complex.acceptUintReturnString.call(42);
       assert.equal(result, "methodId")
 
@@ -479,7 +478,7 @@ contract('MockContract', function(accounts) {
       assert.equal(response, "")
 
       // Fallback mock set
-      await mock.givenAnyReturn("fallback")
+      await mock.givenAnyReturn(web3.eth.abi.encodeParameter("string", "fallback"))
       result = await complex.acceptUintReturnString.call(42);
       assert.equal(result, "fallback")
 
@@ -539,7 +538,7 @@ contract('MockContract', function(accounts) {
       const complex = await ComplexInterface.at(mock.address)
 
       let methodId = await complex.contract.methods.acceptUintReturnUintView(0).encodeABI();
-      await mock.givenMethodReturn(methodId, "7")
+      await mock.givenMethodReturn(methodId, web3.eth.abi.encodeParameter("uint", 7))
 
       result = await complex.acceptUintReturnUintView(0)
       assert.equal(result.toNumber(), 7)
