@@ -1,5 +1,3 @@
-const abi = require("ethereumjs-abi");
-
 async function assertRejects(q, msg, errorPredicate) {
     let res, error = false
     try {
@@ -32,7 +30,11 @@ async function assertOutOfGas(q) {
 async function getErrorMessage(to, value, data, from) {
     let returnData = await web3.eth.call({to: to, from: from, value: value, data: data})
     let returnBuffer = Buffer.from(returnData.slice(2), "hex")
-    return abi.rawDecode(["string"], returnBuffer.slice(4))[0]
+    if (returnBuffer.length > 4) {
+      return web3.eth.abi.decodeParameter("string", returnBuffer.slice(4).toString("hex"));
+    } else {
+      return "";
+    }
 }
 
 Object.assign(exports, {

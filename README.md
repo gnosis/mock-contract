@@ -90,7 +90,8 @@ it('updates the captor', async () => {
   const mock = await MockContract.new()
   const auction = await SimpleAuction.new(mock.address)
 
-  await mock.givenAnyReturnBool(true)
+  const trueEncoded = web3.eth.abi.encodeParameter("bool", true)
+  await mock.givenAnyReturnBool(trueEncoded)
   await auction.bid({from: accounts[0]})
   
   assert.equal(accounts[0], await auction.captor.call())
@@ -226,8 +227,8 @@ await mock.reset()
 If the methods for returning the most commonly used types are not enough, we can manually ABI encode our responses with arbitrary solidity types:
 
 ```js
-const abi = require('ethereumjs-abi')
-await mock.givenAnyReturn(abi.rawEncode(['string'], ['Hello World!']));
+const hello_world = web3.eth.abi.encodeParameter("string", 'Hello World!')
+await mock.givenAnyReturn(hello_world);
 ```
 
 
