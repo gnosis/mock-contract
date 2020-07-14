@@ -90,8 +90,8 @@ it('updates the captor', async () => {
   const mock = await MockContract.new()
   const auction = await SimpleAuction.new(mock.address)
 
-  const true_encoded = web3.eth.abi.encodeParameter("bool", true)
-  await mock.givenAnyReturnBool(true_encoded)
+  const trueEncoded = web3.eth.abi.encodeParameter("bool", true)
+  await mock.givenAnyReturnBool(trueEncoded)
   await auction.bid({from: accounts[0]})
   
   assert.equal(accounts[0], await auction.captor.call())
