@@ -1,4 +1,6 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: UNLICENSED
+
+pragma solidity >0.6.99 <0.8.0;
 
 /**
  * @dev Used for unit testing MockContract functionality.
