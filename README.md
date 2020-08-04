@@ -20,7 +20,7 @@ Enable compilation of MockContract
 * Add a new `Imports.sol` to the `contracts` folder the project
 * Copy the following code into `Imports.sol`:
 ```js
-pragma solidity ^0.4.24;
+pragma solidity ^0.6.0;
 
 // We import the contract so truffle compiles it, and we have the ABI 
 // available when working from truffle console.
@@ -43,7 +43,7 @@ const contractToTest = await ComplextContract.new(mock.address)
 Let's assume we want to test the following smart contract, which implements a simple bidding procedure:
 
 ```js
-pragma solidity ^0.4.24;
+pragma solidity ^0.6.0;
 import "./Token.sol";
 
 /**
