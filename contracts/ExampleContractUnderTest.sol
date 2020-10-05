@@ -1,11 +1,13 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: UNLICENSED
+
+pragma solidity >0.7.0 <0.8.0;
 
 import './ComplexInterface.sol';
 
 contract ExampleContractUnderTest {
     ComplexInterface complexInterface;
   
-    constructor(address _complexInterface) public {
+    constructor(address _complexInterface) {
         complexInterface = ComplexInterface(_complexInterface);
     }
    

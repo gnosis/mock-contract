@@ -1,4 +1,6 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: UNLICENSED
+
+pragma solidity >=0.7.0 <0.8.0;
 
 interface MockInterface {
 	/**
@@ -103,7 +105,7 @@ contract MockContract is MockInterface {
 	uint invocations;
 	uint resetCount;
 
-	constructor() public {
+	constructor() {
 		calldataMocks[MOCKS_LIST_START] = MOCKS_LIST_END;
 		methodIdMocks[SENTINEL_ANY_MOCKS] = SENTINEL_ANY_MOCKS;
 	}
@@ -242,16 +244,16 @@ contract MockContract is MockInterface {
 		trackMethodIdMock(method);	
 	}
 
-	function invocationCount() override external returns (uint) {
+	function invocationCount() override external view returns (uint) {
 		return invocations;
 	}
 
-	function invocationCountForMethod(bytes calldata call) override external returns (uint) {
+	function invocationCountForMethod(bytes calldata call) override external view returns (uint) {
 		bytes4 method = bytesToBytes4(call);
 		return methodIdInvocations[keccak256(abi.encodePacked(resetCount, method))];
 	}
 
-	function invocationCountForCalldata(bytes calldata call) override external returns (uint) {
+	function invocationCountForCalldata(bytes calldata call) override external view returns (uint) {
 		return calldataInvocations[keccak256(abi.encodePacked(resetCount, call))];
 	}
 
@@ -325,11 +327,15 @@ contract MockContract is MockInterface {
 		calldataInvocations[keccak256(abi.encodePacked(resetCount, originalMsgData))] += 1;
 	}
 
-	fallback () payable external {
-		bytes4 methodId;
-		assembly {
-			methodId := calldataload(0)
-		}
+	receive() payable external {
+		fallbackImpl();
+	}
+	fallback() payable external {
+		fallbackImpl();
+	}
+
+	function fallbackImpl() internal {
+		bytes4 methodId = msg.sig;
 
 		// First, check exact matching overrides
 		if (calldataMockTypes[msg.data] == MockType.Revert) {
