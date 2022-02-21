@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity >=0.7.0 <0.8.0;
+pragma solidity >=0.8.0 <0.9.0;
 
 interface MockInterface {
 	/**
@@ -144,7 +144,7 @@ contract MockContract is MockInterface {
 	}
 
 	function givenAnyReturnAddress(address response) override external {
-		_givenAnyReturn(uintToBytes(uint(response)));
+		_givenAnyReturn(uintToBytes(uint(uint160(response))));
 	}
 
 	function givenAnyRevert() override external {
@@ -181,7 +181,7 @@ contract MockContract is MockInterface {
 	}
 
 	function givenCalldataReturnAddress(bytes calldata call, address response) override external {
-		_givenCalldataReturn(call, uintToBytes(uint(response)));
+		_givenCalldataReturn(call, uintToBytes(uint(uint160(response))));
 	}
 
 	function _givenMethodReturn(bytes memory call, bytes memory response) private {
@@ -205,7 +205,7 @@ contract MockContract is MockInterface {
 	}
 
 	function givenMethodReturnAddress(bytes calldata call, address response) override external {
-		_givenMethodReturn(call, uintToBytes(uint(response)));
+		_givenMethodReturn(call, uintToBytes(uint(uint160(response))));
 	}
 
 	function givenCalldataRevert(bytes calldata call) override external {
